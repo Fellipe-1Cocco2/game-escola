@@ -1,0 +1,36 @@
+// Define o provedor do banco de dados (MongoDB, no seu caso)
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// Define o gerador do Prisma Client
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Define os modelos para seu banco de dados
+model User {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  email    String @unique
+  password String
+  role     Role   @default(USER)
+  Admin    Admin? @relation(fields: [adminId], references: [id])
+  adminId  String? @db.ObjectId
+}
+
+model Admin {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  email    String @unique
+  password String
+  role     Role   @default(ADMIN)
+  users    User[]
+}
+
+// Define o enum para os papéis de usuário
+enum Role {
+  USER
+  ADMIN
+}
