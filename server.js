@@ -1,29 +1,29 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { PrismaClient } = require('@prisma/client');
+const connectDB = require('./config/db'); // Importa a função de conexão
 require('dotenv').config();
 
-const app = express();
-const prisma = new PrismaClient();
+// Conecta ao banco de dados ao iniciar a aplicação
+connectDB();
 
-// Importe as novas rotas
+const app = express();
+
+// Importe as rotas
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const gameRoutes = require('./routes/gameRoutes');
 const pageRoutes = require('./routesPages/pagesRoutes');
-const e = require('express');
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', pageRoutes);
 
-// Rotas
+// Rotas da API
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/game', gameRoutes);
@@ -39,3 +39,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
+

@@ -1,30 +1,52 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken'); // Biblioteca para tokens de autenticação (precisa ser instalada)
+const Professor = require('../models/Professor');
 
-const prisma = new PrismaClient();
 
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+/**
+ * Busca e retorna todos os alunos de todas as salas de todos os professores.
+ */
+const getAllAlunos = async (req, res) => {
+    try {
+        // Busca todos os professores para extrair os alunos
+        const professores = await Professor.find().select('name salas');
+        
+        let todosOsAlunos = [];
+        professores.forEach(professor => {
+            professor.salas.forEach(sala => {
+                // Adiciona informações de contexto a cada aluno para facilitar a exibição no admin
+                sala.alunos.forEach(aluno => {
+                    todosOsAlunos.push({
+                        nome: aluno.nome,
+                        RA: aluno.RA,
+                        sala_id: sala._id,
+                        sala_num_serie: sala.num_serie,
+                        professor_nome: professor.name
+                    });
+                });
+            });
+        });
+
+        res.status(200).json(todosOsAlunos);
+    } catch (error) {
+        console.error('Erro ao buscar todos os alunos:', error);
+        res.status(500).json({ message: 'Ocorreu um erro interno no servidor.' });
+    }
 };
 
-const adminLogin = async (req, res) => {
+/**
+ * Busca e retorna todos os professores do banco de dados.
+ */
+const getAllProfessors = async (req, res) => {
     try {
-        const { email, password } = req.body;
-        
-        const admin = await prisma.admin.findUnique({ where: { email } });
-
-        if (admin && (await bcrypt.compare(password, admin.password))) {
-            const token = generateToken(admin.id);
-            res.status(200).json({ message: 'Login de administrador bem-sucedido.', token });
-        } else {
-            res.status(401).json({ error: 'E-mail ou senha incorretos.' });
-        }
+        const professors = await Professor.find().select('-password'); // Exclui a senha da resposta
+        res.status(200).json(professors);
     } catch (error) {
-        res.status(500).json({ error: 'Erro no servidor.' });
+        console.error('Erro ao buscar professores:', error);
+        res.status(500).json({ message: 'Ocorreu um erro interno no servidor.' });
     }
 };
 
 module.exports = {
-    adminLogin
+    getAllAlunos,
+    getAllProfessors
 };
+

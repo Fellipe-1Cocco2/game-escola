@@ -1,38 +1,45 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcrypt');
+const Professor = require('../models/Professor'); // Importa o modelo Mongoose
 
-const prisma = new PrismaClient();
+/**
+ * Registra um novo Professor no banco de dados.
+ */
+const registerUser = async (req, res) => {
+    const { name, email, password } = req.body;
 
-// Controlador de usuários
-const UserController = {
-    // Método para registrar um novo usuário
-    registerUser: async (req, res) => {
-        try {
-            // Extrai os dados do corpo da requisição
-            const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+        return res.status(400).json({ message: 'Por favor, forneça nome, email e senha.' });
+    }
 
-            // Criptografa a senha antes de salvar
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
+    try {
+        // Verifica se o e-mail já está em uso
+        const existingProfessor = await Professor.findOne({ email });
 
-            // Salva o novo usuário no banco de dados usando o Prisma
-            const newUser = await prisma.user.create({
-                data: {
-                    name,
-                    email,
-                    password: hashedPassword,
-                },
-            });
-
-            // Retorna uma resposta de sucesso
-            res.status(201).json({ message: 'Usuário cadastrado com sucesso.', user: newUser });
-        } catch (error) {
-            console.error('Erro ao cadastrar usuário:', error);
-            // Trata erros e retorna uma resposta de erro
-            res.status(500).json({ error: 'Erro ao cadastrar usuário.' });
+        if (existingProfessor) {
+            return res.status(409).json({ message: 'Este e-mail já está em uso.' });
         }
+
+        // Cria o novo professor. A senha será criptografada automaticamente pelo hook 'pre-save' no modelo.
+        const newProfessor = await Professor.create({
+            name,
+            email,
+            password,
+        });
+
+        // Retorna os dados do professor criado (sem a senha)
+        res.status(201).json({
+            _id: newProfessor._id,
+            name: newProfessor.name,
+            email: newProfessor.email,
+            role: newProfessor.role
+        });
+
+    } catch (error) {
+        console.error('Erro ao registrar professor:', error);
+        res.status(500).json({ message: 'Ocorreu um erro interno no servidor.' });
     }
 };
 
-// Exporta o controlador
-module.exports = UserController;
+module.exports = {
+    registerUser,
+};
+

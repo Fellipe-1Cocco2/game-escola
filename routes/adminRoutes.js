@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const adminController = require('../controllers/adminController');
+const { getAllAlunos, getAllProfessors } = require('../controllers/adminController');
 
-// Rota para login de administrador
-router.post('/login', adminController.adminLogin);
+// Rota para buscar todos os professores
+router.get('/professors', getAllProfessors);
+
+// Rota para buscar todos os alunos
+router.get('/alunos', getAllAlunos);
 
 module.exports = router;

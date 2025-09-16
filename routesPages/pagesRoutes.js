@@ -10,4 +10,16 @@ router.get('/jogar', (req, res) => {
      res.sendFile(path.join(__dirname, '..','public', 'pages', 'id-game.html'))
 })
 
+router.get('/login', (req, res) => {
+     res.sendFile(path.join(__dirname, '..','public', 'pages', 'login.html'))
+})
+
+router.get('/cadastro', (req, res) => {
+     res.sendFile(path.join(__dirname, '..','public', 'pages', 'cadastro.html'))
+})
+
+router.get('/admin', (req, res) => {
+     res.sendFile(path.join(__dirname, '..','public', 'pages', 'admin.html'))
+})
+
 module.exports = router;

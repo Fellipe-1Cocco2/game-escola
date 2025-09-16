@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Administrativo</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo para a fonte e cor de fundo */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para feedback visual nos botões */
+        .btn-action {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-action:hover {
+            transform: scale(1.05);
+        }
+    </style>
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Dashboard Administrativo</h1>
+            <p class="text-gray-600 mt-1">Gerencie usuários e professores do sistema.</p>
+        </header>
+
+        <!-- Seção de Professores -->
+        <section class="bg-white shadow-lg rounded-xl p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-3">Professores</h2>
+            <div id="professors-error" class="hidden bg-red-100 text-red-700 p-4 rounded-lg mb-4"></div>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-max text-left table-auto">
+                    <thead class="bg-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold text-sm uppercase">ID</th>
+                            <th class="px-4 py-3 font-semibold text-sm uppercase">Nome</th>
+                            <th class="px-4 py-3 font-semibold text-sm uppercase">Email</th>
+                            <th class="px-4 py-3 font-semibold text-sm uppercase">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="professors-table-body">
+                        <!-- Dados dos professores serão inseridos aqui via JS -->
+                         <tr><td colspan="4" class="text-center p-6 text-gray-500" id="professors-loading">Carregando dados...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Seção de Usuários -->
+        <section class="bg-white shadow-lg rounded-xl p-6">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-3">Usuários (Alunos)</h2>
+            <div id="users-error" class="hidden bg-red-100 text-red-700 p-4 rounded-lg mb-4"></div>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-max text-left table-auto">
+                    <thead class="bg-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold text-sm uppercase">ID</th>
+                            <th class="px-4 py-3 font-semibold text-sm uppercase">Nome</th>
+                            <th class="px-4 py-3 font-semibold text-sm uppercase">Email</th>
+                             <th class="px-4 py-3 font-semibold text-sm uppercase">ID Professor</th>
+                            <th class="px-4 py-3 font-semibold text-sm uppercase">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- Dados dos usuários serão inseridos aqui via JS -->
+                        <tr><td colspan="5" class="text-center p-6 text-gray-500" id="users-loading">Carregando dados...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            /**
+             * Função genérica para buscar dados da API e popular uma tabela.
+             * @param {string} endpoint - O endpoint da API para buscar os dados.
+             * @param {HTMLElement} tableBody - O elemento tbody da tabela a ser populada.
+             * @param {HTMLElement} loadingElement - O elemento de feedback de carregamento.
+             * @param {HTMLElement} errorElement - O elemento para exibir mensagens de erro.
+             * @param {Function} rowRenderer - Uma função que recebe um item de dados e retorna uma string HTML para a linha da tabela.
+             */
+            const fetchData = async (endpoint, tableBody, loadingElement, errorElement, rowRenderer) => {
+                loadingElement.style.display = 'table-row';
+                errorElement.classList.add('hidden');
+
+                try {
+                    const response = await fetch(endpoint);
+                    if (!response.ok) {
+                        throw new Error(`Erro na rede: ${response.statusText} (Status: ${response.status})`);
+                    }
+                    const data = await response.json();
+
+                    loadingElement.style.display = 'none';
+                    tableBody.innerHTML = ''; // Limpa a tabela
+
+                    if (data.length === 0) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td colspan="${tableBody.previousElementSibling.rows[0].cells.length}" class="text-center p-6 text-gray-500">Nenhum registro encontrado.</td>`;
+                        tableBody.appendChild(tr);
+                    } else {
+                        data.forEach(item => {
+                            const tr = document.createElement('tr');
+                            tr.className = 'border-b hover:bg-gray-50';
+                            tr.innerHTML = rowRenderer(item);
+                            tableBody.appendChild(tr);
+                        });
+                    }
+
+                } catch (error) {
+                    console.error(`Falha ao buscar dados de ${endpoint}:`, error);
+                    loadingElement.style.display = 'none';
+                    errorElement.textContent = `Não foi possível carregar os dados. ${error.message}`;
+                    errorElement.classList.remove('hidden');
+                }
+            };
+
+            // Funções para renderizar as linhas de cada tabela
+            const renderProfessorRow = (prof) => `
+                <td class="px-4 py-3">${prof.professorid || prof.id}</td>
+                <td class="px-4 py-3">${prof.name}</td>
+                <td class="px-4 py-3">${prof.email}</td>
+                <td class="px-4 py-3">
+                    <button class="btn-action bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Editar</button>
+                    <button class="btn-action bg-red-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 ml-2">Excluir</button>
+                </td>
+            `;
+
+            const renderUserRow = (user) => `
+                <td class="px-4 py-3">${user.id}</td>
+                <td class="px-4 py-3">${user.name}</td>
+                <td class="px-4 py-3">${user.email}</td>
+                <td class="px-4 py-3">${user.professorid || 'N/A'}</td>
+                <td class="px-4 py-3">
+                    <button class="btn-action bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Editar</button>
+                    <button class="btn-action bg-red-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 ml-2">Excluir</button>
+                </td>
+            `;
+
+            // Seleciona os elementos do DOM
+            const professorsTableBody = document.getElementById('professors-table-body');
+            const professorsLoading = document.getElementById('professors-loading');
+            const professorsError = document.getElementById('professors-error');
+            
+            const usersTableBody = document.getElementById('users-table-body');
+            const usersLoading = document.getElementById('users-loading');
+            const usersError = document.getElementById('users-error');
+
+            // Inicia a busca dos dados ao carregar a página
+            fetchData('/api/admin/professors', professorsTableBody, professorsLoading, professorsError, renderProfessorRow);
+            fetchData('/api/admin/users', usersTableBody, usersLoading, usersError, renderUserRow);
+        });
+    </script>
+</body>
+</html>
