@@ -21,12 +21,15 @@
                 </div>
                 <div class="card">
                     <div class="card-content">
-                        <form class="form-container">
+                        <!-- ATUALIZADO: Adicionado id="login-form" -->
+                        <form id="login-form" class="form-container">
                             <h1 class="titulo">Faça seu login</h1>
                             <input type="text" placeholder="E-mail" id="email" class="email-input">
                             <input type="password" placeholder="Senha" id="senha" class="senha-input">
-                            <button id="logarBtn" class="btn btn-primary">Login</button>
-                            <button class="btn btn-primary" onclick="window.location.href='./cadastro'">Cadastrar</button>
+                            <!-- ATUALIZADO: Adicionado type="submit" para garantir a submissão do formulário -->
+                            <button type="submit" class="btn btn-primary">Login</button>
+                            <!-- ATUALIZADO: Usando um link <a> para o cadastro, que é mais confiável -->
+                            <a href="/cadastro" class="btn btn-secondary">Ainda não tem conta? Cadastre-se</a>
                         </form>
                     </div>
                 </div>
@@ -44,7 +47,10 @@
         <div class="floating-element floating-3"></div>
         <div class="floating-element floating-4"></div>
     </div>
-    <script src="../script/index.js"></script>
+
+    <!-- Elemento para o Pop-up Flutuante -->
+    <div id="toast-notification" class="toast-notification"></div>
+    <script src="../script/login.js"></script>
 </body>
 </html>
 

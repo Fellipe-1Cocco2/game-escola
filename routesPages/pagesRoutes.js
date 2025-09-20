@@ -22,4 +22,9 @@ router.get('/admin', (req, res) => {
      res.sendFile(path.join(__dirname, '..','public', 'pages', 'admin.html'))
 })
 
+// rota para a página do dashboard do professor
+router.get('/dashboard', (req, res) => {
+     res.sendFile(path.join(__dirname, '..','public', 'pages', 'dashboard.html'))
+})
+
 module.exports = router;

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Sala</title>
+    <link rel="stylesheet" href="../styles/sala.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 id="sala-titulo">Carregando Sala...</h1>
+            <a href="/dashboard" class="btn-voltar">Voltar para o Dashboard</a>
+        </header>
+
+        <main class="main-content">
+            <!-- Seção de Tarefas -->
+            <section class="card">
+                <h2>Tarefas</h2>
+                <div id="lista-tarefas" class="lista">
+                    <!-- As tarefas serão inseridas aqui pelo JavaScript -->
+                </div>
+                <form id="form-nova-tarefa" class="form-container">
+                    <input type="text" id="input-nova-tarefa" placeholder="Digite o texto da nova tarefa..." required>
+                    <button type="submit" class="btn btn-primary">Adicionar Tarefa</button>
+                </form>
+            </section>
+
+            <!-- Seção de Alunos -->
+            <section class="card">
+                <h2>Alunos</h2>
+                <div id="lista-alunos" class="lista">
+                    <p class="placeholder">Nenhum aluno nesta sala ainda.</p>
+                </div>
+                <form id="form-novo-aluno" class="form-container">
+                    <input type="text" id="input-nome-aluno" placeholder="Nome do Aluno" required>
+                    <input type="text" id="input-ra-aluno" placeholder="RA do Aluno" required>
+                    <button type="submit" class="btn btn-primary">Adicionar Aluno</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <!-- Elemento para o Pop-up Flutuante -->
+    <div id="toast-notification" class="toast-notification"></div>
+    <script src="../script/sala.js"></script>
+</body>
+</html>
+

@@ -3,29 +3,40 @@ const bcrypt = require('bcryptjs');
 
 // --- Subdocumentos ---
 
+// Schema para uma Tarefa individual dentro de uma sala
+const tarefaSchema = new mongoose.Schema({
+    texto: {
+        type: String,
+        required: true
+    },
+    concluida: {
+        type: Boolean,
+        default: false
+    }
+}, { timestamps: true });
+
+
 // Schema para um aluno individual dentro de uma sala
 const alunoSchema = new mongoose.Schema({
     nome: {
         type: String,
         required: [true, 'O nome do aluno é obrigatório.']
     },
-    RA: { // Registro do Aluno
+    RA: {
         type: String,
         required: [true, 'O RA do aluno é obrigatório.']
     }
-}, { _id: false }); // _id: false para não criar IDs para cada aluno, a menos que seja necessário
+}, { _id: false });
 
 // Schema para uma sala de aula individual
 const salaSchema = new mongoose.Schema({
-    // O id_sala é gerado automaticamente pelo MongoDB como '_id'
     num_serie: {
         type: String,
         required: [true, 'O número/série da sala é obrigatório.']
     },
-    perguntas: [{
-        type: String // Um array simples de perguntas
-    }],
-    alunos: [alunoSchema] // Um array de alunos aninhados
+    // ATUALIZADO: Usando o novo schema de tarefas
+    tarefas: [tarefaSchema],
+    alunos: [alunoSchema]
 });
 
 
@@ -49,16 +60,17 @@ const professorSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Por favor, adicione uma senha'],
         minlength: 6,
-        select: false // Não retorna a senha em buscas por padrão
+        select: false
     },
-    salas: [salaSchema] // Um professor pode ter um array de salas
+    salas: [salaSchema]
 }, {
-    timestamps: true // Adiciona os campos createdAt e updatedAt
+    timestamps: true
 });
 
-// Hook (middleware) que criptografa a senha antes de salvar o documento
+// --- Métodos e Hooks ---
+
+// Hook para criptografar a senha antes de salvar
 professorSchema.pre('save', async function(next) {
-    // Apenas criptografa a senha se ela foi modificada (ou é nova)
     if (!this.isModified('password')) {
         return next();
     }
@@ -66,6 +78,12 @@ professorSchema.pre('save', async function(next) {
     this.password = await bcrypt.hash(this.password, salt);
     next();
 });
+
+// Método para comparar a senha digitada com a senha no banco
+professorSchema.methods.matchPassword = async function(enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+};
+
 
 module.exports = mongoose.model('Professor', professorSchema);
 

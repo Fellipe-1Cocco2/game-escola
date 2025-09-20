@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard do Professor</title>
+    <link rel="stylesheet" href="../styles/dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Bem-vindo(a), <span id="professor-nome">...</span>!</h1>
+            <p>Aqui você pode gerir as suas salas de aula.</p>
+        </header>
+
+        <main>
+            <section>
+                <h2>Minhas Salas</h2>
+                <div id="lista-salas">
+                    <!-- Cards das salas serão inseridos aqui pelo JavaScript -->
+                </div>
+            </section>
+            
+            <section>
+                <h2>Criar Nova Sala</h2>
+                <form id="form-nova-sala">
+                    <input type="text" id="input-nova-sala" placeholder="Ex: 9º Ano B" required>
+                    <button type="submit" class="btn btn-primary">Criar Sala</button>
+                </form>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Elemento para o Pop-up Flutuante -->
+    <div id="toast-notification" class="toast-notification"></div>
+    <script src="../script/dashboard.js"></script>
+</body>
+</html>
+
