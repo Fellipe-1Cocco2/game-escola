@@ -10,31 +10,70 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>Bem-vindo(a), <span id="professor-nome">...</span>!</h1>
-            <p>Aqui você pode gerir as suas salas de aula.</p>
-        </header>
+    <header class="header">
+        <div class="header-content">
+            <h1 id="welcome-message">Bem-vindo(a), <span id="nome-professor">...</span>!</h1>
+            <!-- Botão de sair agora tem uma classe específica para o estilo de perigo -->
+            <button id="btn-logout" class="btn-logout btn-danger">Sair</button>
+        </div>
+    </header>
 
-        <main>
-            <section>
-                <h2>Minhas Salas</h2>
-                <div id="lista-salas">
-                    <!-- Cards das salas serão inseridos aqui pelo JavaScript -->
+    <main class="container">
+        <div class="main-header">
+            <h2>Minhas Salas</h2>
+            <button id="btn-abrir-modal" class="btn-primary">Criar Nova Sala</button>
+        </div>
+        <div id="lista-salas" class="salas-grid">
+            <!-- Os cards das salas serão inseridos aqui pelo JavaScript -->
+        </div>
+    </main>
+
+    <!-- Modal para Criar Nova Sala (sem alterações) -->
+    <div id="modal-nova-sala" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Criar Nova Sala de Aula</h3>
+                <button id="btn-fechar-modal" class="btn-close">&times;</button>
+            </div>
+            <form id="form-nova-sala">
+                <div class="form-group">
+                    <label for="select-ano-serie">Ano/Série</label>
+                    <select id="select-ano-serie" required>
+                        <option value="" disabled selected>Selecione o Ano/Série</option>
+                        <option value="1º ano">1º ano</option>
+                        <option value="2º ano">2º ano</option>
+                        <option value="3º ano">3º ano</option>
+                        <option value="4º ano">4º ano</option>
+                        <option value="5º ano">5º ano</option>
+                        <option value="6º ano">6º ano</option>
+                        <option value="7º ano">7º ano</option>
+                        <option value="8º ano">8º ano</option>
+                        <option value="9º ano">9º ano</option>
+                        <option value="1ª série">1ª série</option>
+                        <option value="2ª série">2ª série</option>
+                        <option value="3ª série">3ª série</option>
+                    </select>
                 </div>
-            </section>
-            
-            <section>
-                <h2>Criar Nova Sala</h2>
-                <form id="form-nova-sala">
-                    <input type="text" id="input-nova-sala" placeholder="Ex: 9º Ano B" required>
-                    <button type="submit" class="btn btn-primary">Criar Sala</button>
-                </form>
-            </section>
-        </main>
+                <div class="form-group">
+                    <label for="select-turma">Turma</label>
+                    <select id="select-turma" required>
+                        <option value="" disabled selected>Selecione a Turma</option>
+                        <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+                        <option value="D">D</option><option value="E">E</option><option value="F">F</option>
+                        <option value="G">G</option><option value="H">H</option><option value="I">I</option>
+                        <option value="J">J</option><option value="K">K</option><option value="L">L</option>
+                        <option value="M">M</option><option value="N">N</option><option value="O">O</option>
+                        <option value="P">P</option><option value="Q">Q</option><option value="R">R</option>
+                        <option value="S">S</option><option value="T">T</option><option value="U">U</option>
+                        <option value="V">V</option><option value="W">W</option><option value="X">X</option>
+                        <option value="Y">Y</option><option value="Z">Z</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary btn-full">Criar Sala</button>
+            </form>
+        </div>
     </div>
-    
-    <!-- Elemento para o Pop-up Flutuante -->
+
     <div id="toast-notification" class="toast-notification"></div>
     <script src="../script/dashboard.js"></script>
 </body>

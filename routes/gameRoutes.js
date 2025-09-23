@@ -1,24 +1,34 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    criarSala, 
+const {
+    criarSala,
+    getTodasAsSalas,
+    getSalaDetalhes,
+    adicionarTarefa,
+    convidarEditor,
+    excluirSala,
     adicionarAluno,
-    getSalaById,    // Importa a nova função
-    adicionarTarefa // Importa a nova função
+    loginAluno
 } = require('../controllers/gameController');
-const { protect } = require('../middleware/authMiddleware'); // Importa o middleware de proteção
+const { protect } = require('../middleware/authMiddleware');
 
-// Rota para um professor criar uma nova sala (protegida)
-router.post('/salas', protect, criarSala);
+// --- ROTAS DO ALUNO (PÚBLICAS) ---
+// Rota para o aluno fazer login. Não precisa de 'protect'.
+router.post('/aluno/login', loginAluno);
 
-// (NOVO) Rota para buscar os detalhes de uma sala específica (protegida)
-router.get('/salas/:salaId', protect, getSalaById);
+// --- ROTAS DO PROFESSOR (PROTEGIDAS) ---
+// Todas as rotas abaixo exigem que o professor esteja logado.
+router.route('/salas')
+    .post(protect, criarSala)
+    .get(protect, getTodasAsSalas);
 
-// (NOVO) Rota para adicionar uma tarefa a uma sala (protegida)
+router.route('/salas/:salaId')
+    .get(protect, getSalaDetalhes)
+    .delete(protect, excluirSala);
+
 router.post('/salas/:salaId/tarefas', protect, adicionarTarefa);
-
-// Rota para adicionar um aluno a uma sala específica (pode ser protegida ou não, dependendo da lógica)
-router.post('/salas/:salaId/alunos', adicionarAluno);
+router.post('/salas/:salaId/editores', protect, convidarEditor);
+router.post('/salas/:salaId/alunos', protect, adicionarAluno);
 
 module.exports = router;
 

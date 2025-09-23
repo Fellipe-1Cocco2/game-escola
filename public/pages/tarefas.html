@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sabidin - Suas Tarefas!</title>
+    <link rel="stylesheet" href="../styles/aluno.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="main-container-tarefas">
+        <header class="game-header-tarefas">
+            <div class="header-content">
+                <div class="user-info">
+                    <!-- O subtítulo foi movido para dentro do h1 para um visual mais limpo -->
+                    <h1>Olá, <span id="nome-aluno">...</span>! <small id="subtitulo-tarefas">Carregando...</small></h1>
+                </div>
+                <button id="btn-sair" class="btn-logout">Sair</button>
+            </div>
+        </header>
+
+        <main class="content-tarefas">
+            <div id="lista-tarefas-jogo" class="tarefas-container">
+                <!-- As tarefas ou a mensagem de "sem tarefas" serão carregadas aqui -->
+            </div>
+        </main>
+    </div>
+    <script src="../script/tarefas.js"></script>
+</body>
+</html>
+

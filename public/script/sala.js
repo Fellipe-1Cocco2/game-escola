@@ -1,129 +1,180 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Elementos da página
-    const salaTitulo = document.getElementById('sala-titulo');
-    const listaTarefas = document.getElementById('lista-tarefas');
+    const nomeSalaEl = document.getElementById('nome-sala');
+    const criadorSalaEl = document.getElementById('criador-sala');
+    const listaTarefasEl = document.getElementById('lista-tarefas');
     const formNovaTarefa = document.getElementById('form-nova-tarefa');
-    const inputNovaTarefa = document.getElementById('input-nova-tarefa');
-    
-    const listaAlunos = document.getElementById('lista-alunos');
+    const inputTarefa = document.getElementById('input-tarefa');
+    const listaAlunosEl = document.getElementById('lista-alunos');
+    const formNovoAluno = document.getElementById('form-novo-aluno');
+    const inputAlunoNome = document.getElementById('input-aluno-nome');
+    const inputAlunoRa = document.getElementById('input-aluno-ra');
+    const cardEditores = document.getElementById('card-editores');
+    const formConvidarEditor = document.getElementById('form-convidar-editor');
+    const inputEmailConvidado = document.getElementById('input-email-convidado');
+    const listaEditoresEl = document.getElementById('lista-editores');
+    const btnExcluirSala = document.getElementById('btn-excluir-sala');
+    const modalExcluir = document.getElementById('modal-excluir');
+    const btnCancelarExclusao = document.getElementById('btn-cancelar-exclusao');
+    const btnConfirmarExclusao = document.getElementById('btn-confirmar-exclusao');
     const toastNotification = document.getElementById('toast-notification');
-    let toastTimeout;
+    
+    // NOVOS Elementos para o Código da Sala
+    const codigoSalaDisplayEl = document.getElementById('codigo-sala-display');
+    const btnCopiarCodigo = document.getElementById('btn-copiar-codigo');
 
-    // Extrair o ID da sala da URL
+
+    let salaAtual;
+    let professorLogado;
+
     const salaId = window.location.pathname.split('/').pop();
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('token');
 
-    // Se não houver ID da sala ou token, redireciona
-    if (!salaId || !token) {
+    if (!token) {
         window.location.href = '/login';
         return;
     }
 
-    // Função para buscar e renderizar os dados da sala
+    // --- Funções de Renderização ---
+    const renderTarefas = (tarefas) => {
+        listaTarefasEl.innerHTML = '';
+        if ((tarefas || []).length === 0) {
+            listaTarefasEl.innerHTML = '<li>Nenhuma tarefa cadastrada.</li>';
+            return;
+        }
+        (tarefas || []).forEach(tarefa => {
+            const li = document.createElement('li');
+            li.textContent = tarefa.descricao;
+            listaTarefasEl.appendChild(li);
+        });
+    };
+    const renderAlunos = (alunos) => {
+        listaAlunosEl.innerHTML = '';
+        if ((alunos || []).length === 0) {
+            listaAlunosEl.innerHTML = '<li>Nenhum aluno cadastrado.</li>';
+            return;
+        }
+        (alunos || []).forEach(aluno => {
+            const li = document.createElement('li');
+            li.innerHTML = `<div class="lista-info"><strong>${aluno.nome}</strong><span>RA: ${aluno.RA}</span></div>`;
+            listaAlunosEl.appendChild(li);
+        });
+    };
+    const renderEditores = (editores) => {
+        listaEditoresEl.innerHTML = '';
+        (editores || []).forEach(editor => {
+            const li = document.createElement('li');
+            li.innerHTML = `<div class="lista-info"><strong>${editor.name}</strong><span>${editor.email}</span></div>`;
+            listaEditoresEl.appendChild(li);
+        });
+    };
+
+    // --- Lógica Principal ---
     const fetchSalaData = async () => {
         try {
-            const response = await fetch(`/api/game/salas/${salaId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const [meResponse, salaResponse] = await Promise.all([
+                fetch('/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`/api/game/salas/${salaId}`, { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
 
-            if (response.status === 401) { // Não autorizado
-                localStorage.removeItem('authToken');
-                window.location.href = '/login';
-                return;
-            }
-            if (!response.ok) {
-                throw new Error('Não foi possível carregar os dados da sala.');
-            }
-
-            const sala = await response.json();
+            if (!meResponse.ok || !salaResponse.ok) throw new Error('Não foi possível carregar os dados.');
             
-            // Atualiza o título
-            salaTitulo.textContent = `Gerenciando Sala: ${sala.num_serie}`;
+            professorLogado = await meResponse.json();
+            salaAtual = await salaResponse.json();
 
-            // Renderiza as tarefas
-            renderTarefas(sala.tarefas);
-            // Renderiza os alunos
-            renderAlunos(sala.alunos);
+            nomeSalaEl.textContent = salaAtual.num_serie;
+            criadorSalaEl.textContent = `Criada por: ${salaAtual.criador.name}`;
+            codigoSalaDisplayEl.textContent = salaAtual._id; // Mostra o ID da sala
 
+            renderTarefas(salaAtual.tarefas);
+            renderAlunos(salaAtual.alunos);
+
+            const isCriador = professorLogado._id === salaAtual.criador._id;
+            if (isCriador) {
+                cardEditores.classList.remove('hidden');
+                btnExcluirSala.classList.remove('hidden');
+                renderEditores(salaAtual.editoresConvidados);
+            }
         } catch (error) {
             console.error('Erro:', error);
-            salaTitulo.textContent = 'Erro ao carregar a sala';
-            showToast(error.message, 'error');
-        }
-    };
-
-    // Função para renderizar a lista de tarefas
-    const renderTarefas = (tarefas) => {
-        listaTarefas.innerHTML = ''; // Limpa a lista
-        if (tarefas.length === 0) {
-            listaTarefas.innerHTML = '<p class="placeholder">Nenhuma tarefa criada ainda.</p>';
-        } else {
-            tarefas.forEach(tarefa => {
-                const item = document.createElement('div');
-                item.className = 'item-tarefa';
-                item.innerHTML = `<span>${tarefa.texto}</span>`; // Adicionar botões de ação aqui depois
-                listaTarefas.appendChild(item);
-            });
+            showToast(error.message || 'Erro ao carregar dados.', 'error');
         }
     };
     
-    // Função para renderizar a lista de alunos
-    const renderAlunos = (alunos) => {
-        listaAlunos.innerHTML = '';
-        if (alunos.length === 0) {
-            listaAlunos.innerHTML = '<p class="placeholder">Nenhum aluno nesta sala ainda.</p>';
-        } else {
-            alunos.forEach(aluno => {
-                const item = document.createElement('div');
-                item.className = 'item-aluno';
-                item.innerHTML = `<span>${aluno.nome} <span class="ra">(RA: ${aluno.RA})</span></span>`;
-                listaAlunos.appendChild(item);
-            });
-        }
-    };
-    
-    // Event listener para o formulário de nova tarefa
-    formNovaTarefa.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const textoTarefa = inputNovaTarefa.value.trim();
-        if (!textoTarefa) return;
-
+    // --- Event Listeners ---
+    formNovaTarefa.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const descricao = inputTarefa.value.trim();
+        if (!descricao) return;
         try {
-            const response = await fetch(`/api/game/salas/${salaId}/tarefas`, {
+            const res = await fetch(`/api/game/salas/${salaId}/tarefas`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ texto: textoTarefa })
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ descricao })
             });
-
-            const novaTarefa = await response.json();
-
-            if (!response.ok) {
-                throw new Error(novaTarefa.message || 'Não foi possível adicionar a tarefa.');
-            }
-
-            // Adiciona a nova tarefa à lista sem precisar recarregar a página
-            const placeholder = listaTarefas.querySelector('.placeholder');
-            if (placeholder) placeholder.remove();
-            
-            const item = document.createElement('div');
-            item.className = 'item-tarefa';
-            item.innerHTML = `<span>${novaTarefa.texto}</span>`;
-            listaTarefas.appendChild(item);
-
-            inputNovaTarefa.value = ''; // Limpa o input
+            if (!res.ok) throw new Error('Falha ao adicionar tarefa.');
+            const salaAtualizada = await res.json();
+            renderTarefas(salaAtualizada.tarefas);
+            inputTarefa.value = '';
             showToast('Tarefa adicionada com sucesso!', 'success');
-
         } catch (error) {
-            console.error('Erro ao adicionar tarefa:', error);
             showToast(error.message, 'error');
         }
     });
 
+    formNovoAluno.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nome = inputAlunoNome.value.trim();
+        const RA = inputAlunoRa.value.trim();
+        if (!nome || !RA) return;
+        try {
+            const res = await fetch(`/api/game/salas/${salaId}/alunos`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, RA })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Falha ao cadastrar aluno.');
+            renderAlunos(data.alunos);
+            formNovoAluno.reset();
+            showToast('Aluno cadastrado com sucesso!', 'success');
+        } catch (error) {
+            showToast(error.message, 'error');
+        }
+    });
+    
+    // NOVO Event Listener para o botão de copiar
+    btnCopiarCodigo.addEventListener('click', () => {
+        navigator.clipboard.writeText(salaAtual._id)
+            .then(() => {
+                showToast('Código copiado!', 'success');
+            })
+            .catch(err => {
+                console.error('Falha ao copiar:', err);
+                showToast('Não foi possível copiar o código.', 'error');
+            });
+    });
+
+    btnExcluirSala.addEventListener('click', () => modalExcluir.classList.remove('hidden'));
+    btnCancelarExclusao.addEventListener('click', () => modalExcluir.classList.add('hidden'));
+    modalExcluir.addEventListener('click', (e) => {
+        if (e.target === modalExcluir) modalExcluir.classList.add('hidden');
+    });
+    btnConfirmarExclusao.addEventListener('click', async () => {
+        try {
+            const res = await fetch(`/api/game/salas/${salaId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Falha ao excluir a sala.');
+            showToast('Sala excluída com sucesso!', 'success');
+            setTimeout(() => window.location.href = '/dashboard', 1500);
+        } catch (error) {
+            showToast(error.message, 'error');
+        }
+    });
+
+    let toastTimeout;
     function showToast(message, type = 'error') {
         clearTimeout(toastTimeout);
         toastNotification.textContent = message;
@@ -131,10 +182,9 @@ document.addEventListener('DOMContentLoaded', () => {
         toastNotification.classList.add(type, 'show');
         toastTimeout = setTimeout(() => {
             toastNotification.classList.remove('show');
-        }, 4000);
+        }, 3000);
     }
 
-    // Carrega os dados da sala ao iniciar a página
     fetchSalaData();
 });
 

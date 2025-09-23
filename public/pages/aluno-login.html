@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sabidin - Entrar no Jogo</title>
+    <link rel="stylesheet" href="../styles/aluno.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="main-container">
+        <div class="card-container">
+            <div class="card">
+                <div class="card-header-aluno">
+                    <h1>SABIDIN</h1>
+                    <h2>Vamos Jogar!</h2>
+                    <p>Digite o código da sala e seu RA para começar a diversão.</p>
+                </div>
+                <form id="aluno-login-form">
+                    <div class="form-group">
+                        <label for="codigo-sala">Código da Sala</label>
+                        <input type="text" id="codigo-sala" class="form-input" placeholder="Cole o código aqui">
+                        <div id="codigo-sala-error" class="error-message"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ra-aluno">Seu RA</label>
+                        <input type="text" id="ra-aluno" class="form-input" placeholder="Digite seu RA">
+                        <div id="ra-aluno-error" class="error-message"></div>
+                    </div>
+                    <button type="submit" class="btn-primary">Entrar!</button>
+                </form>
+            </div>
+        </div>
+        <!-- Elementos flutuantes para decoração -->
+        <div class="floating-element floating-1"></div>
+        <div class="floating-element floating-2"></div>
+        <div class="floating-element floating-3"></div>
+        <div class="floating-element floating-4"></div>
+        <!-- Pop-up para erros gerais -->
+        <div id="toast-notification" class="toast-notification"></div>
+    </div>
+    <script src="../script/aluno-login.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,288 @@
+/* ... (todo o código que você já tem de :root até o início de .btn-primary) ... */
+/* Importa a fonte principal e uma fonte divertida para os títulos */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+    --cor-fundo-gradiente: linear-gradient(135deg, #fbcfe8 0%, #fde68a 100%);
+    --cor-cartao-login: white;
+    --cor-sombra: rgba(0, 0, 0, 0.08);
+    --cor-texto-principal: #374151;
+    --cor-texto-secundario: #6b7280;
+    --cor-erro: #ef4444;
+    /* Cores atualizadas para o botão */
+    --cor-botao-primario: #2dd457; /* Verde-azulado */
+    --cor-botao-sombra: #000202;   /* Sombra escura do verde */
+    --cor-botao-texto: #0f172a;  /* Texto escuro */
+    --cor-input-borda: #d1d5db;
+    --cor-input-foco: #6d28d9;
+    --fonte-principal: 'Poppins', sans-serif;
+    --fonte-titulo: 'Fredoka One', cursive;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--fonte-principal);
+    color: var(--cor-texto-principal);
+}
+
+
+/* --- PÁGINA DE LOGIN DO ALUNO (DESIGN RESTAURADO) --- */
+.main-container {
+    min-height: 100vh;
+    background-image: var(--cor-fundo-gradiente);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.card-container {
+    width: 100%;
+    max-width: 26rem;
+    position: relative;
+    z-index: 10;
+}
+
+.card {
+    background-color: var(--cor-cartao-login);
+    box-shadow: 0 10px 25px -5px var(--cor-sombra), 0 10px 10px -5px var(--cor-sombra);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+}
+
+.card-header-aluno {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.card-header-aluno h1 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #a78bfa;
+    letter-spacing: 0.2em;
+}
+
+.card-header-aluno h2 {
+    font-size: 2.25rem;
+    color: var(--cor-texto-principal);
+    margin-top: 0.5rem;
+}
+
+.card-header-aluno p {
+    color: var(--cor-texto-secundario);
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--cor-input-borda);
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+.form-input:focus {
+    outline: none;
+    border-color: var(--cor-input-foco);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+}
+
+.error-message {
+    color: var(--cor-erro);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    height: 1rem;
+}
+
+/* --- NOVO ESTILO PARA O BOTÃO --- */
+.btn-primary {
+    width: 100%;
+    padding: 0.85rem;
+    border: 2px solid var(--cor-botao-sombra);
+    border-radius: 0.75rem; /* Um pouco mais arredondado */
+    background-color: var(--cor-botao-primario);
+    color: var(--cor-botao-texto);
+    font-size: 1.125rem;
+    font-weight: 700; /* Mais forte */
+    cursor: pointer;
+    position: relative;
+    top: 0;
+    box-shadow: 0 6px 0 0 var(--cor-botao-sombra); /* Sombra 3D */
+    transition: all 0.1s ease-in-out;
+}
+
+.btn-primary:hover {
+    top: 2px; /* Move o botão para baixo */
+    box-shadow: 0 4px 0 0 var(--cor-botao-sombra); /* Diminui a sombra */
+}
+
+.btn-primary:active {
+    top: 6px; /* Move ainda mais para baixo */
+    box-shadow: 0 0 0 0 var(--cor-botao-sombra); /* Remove a sombra */
+}
+
+/* --- ESTRUTURA PARA A PÁGINA DE TAREFAS --- */
+.main-container-tarefas {
+    min-height: 100vh;
+    background-image: var(--cor-fundo-gradiente);
+    position: relative;
+    overflow-x: hidden;
+}
+
+.game-header-tarefas {
+    background-color: var(--cor-input-foco);
+    color: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.user-info h1 {
+    font-family: var(--fonte-titulo);
+    font-size: 2rem;
+    margin: 0;
+}
+
+.user-info h1 small {
+    display: block;
+    font-size: 1rem;
+    font-family: var(--fonte-principal);
+    font-weight: 500;
+    opacity: 0.9;
+    margin-top: 4px;
+}
+
+.btn-logout {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-logout:hover {
+    background-color: #dc2626;
+}
+
+.content-tarefas {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.tarefas-container {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px var(--cor-sombra);
+    width: 100%;
+    max-width: 800px;
+}
+
+.tarefa-card {
+    background-color: #f0fdf4;
+    border-left: 5px solid #4ade80;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #166534;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease-in-out;
+}
+
+.tarefa-card:hover {
+    transform: scale(1.02);
+}
+
+.tarefa-card:last-child {
+    margin-bottom: 0;
+}
+
+.tarefa-card-vazio {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    text-align: center;
+    padding: 2rem;
+    border-radius: 1rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--cor-texto-secundario);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Pop-up de erro (toast) */
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-size: 0.95em;
+    color: white;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease-in-out;
+}
+.toast-notification.show {
+    opacity: 1;
+    visibility: visible;
+}
+.toast-notification.error {
+    background-color: var(--cor-erro);
+}
+
+/* Animações dos elementos flutuantes */
+.floating-element { position: absolute; border-radius: 50%; }
+.floating-1 { top: 20%; left: 10%; width: 60px; height: 60px; background-color: #a78bfa; opacity: 0.5; animation: bounce 6s infinite alternate; }
+.floating-2 { top: 60%; right: 15%; width: 100px; height: 100px; background-color: #f472b6; opacity: 0.4; animation: pulse 5s infinite; }
+.floating-3 { bottom: 70%; left: 20%; width: 40px; height: 40px; background-color: #34d399; opacity: 0.6; animation: bounce 7s infinite; }
+.floating-4 { bottom: 30%; right: 25%; width: 20px; height: 20px; background-color: #fbbf24; opacity: 0.8; animation: pulse 4s infinite alternate; }
+
+@keyframes bounce {
+    from { transform: translateY(-20px); }
+    to { transform: translateY(20px); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
