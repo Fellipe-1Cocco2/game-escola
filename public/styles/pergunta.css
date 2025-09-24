@@ -1,0 +1,278 @@
+/* Importa as fontes do Google */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Variáveis de Cores e Fontes */
+:root {
+    --cor-principal: #6d28d9;
+    --cor-principal-clara: #8b5cf6;
+    --cor-fundo-pagina: #f3f4f6;
+    --cor-fundo-card: white;
+    --cor-texto-titulo: #111827;
+    --cor-texto-corpo: #4b5563;
+    --cor-borda: #e5e7eb;
+    --cor-sucesso: #10b981;
+    --cor-erro: #ef4444;
+    --cor-correta: #16a34a;
+    --sombra-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --fonte-principal: 'Poppins', sans-serif;
+    --fonte-titulo: 'Fredoka One', cursive;
+}
+
+/* Reset Básico */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
+
+body {
+    font-family: var(--fonte-principal);
+    background-color: var(--cor-fundo-pagina);
+    color: var(--cor-texto-corpo);
+}
+
+/* Header da Página */
+.page-header {
+    background-color: var(--cor-principal);
+    color: white;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.header-info h1 {
+    font-family: var(--fonte-titulo);
+    font-size: 2rem;
+    margin: 0;
+}
+.btn-voltar {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+/* Layout Principal */
+.main-content { 
+    max-width: 1200px; 
+    margin: 2rem auto; 
+    padding: 0 2rem; 
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.coluna-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--cor-borda);
+}
+.coluna-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--cor-texto-titulo);
+}
+.btn-adicionar { 
+    background-color: var(--cor-principal); 
+    color: white; 
+    border: none; 
+    padding: 0.6rem 1.2rem; 
+    border-radius: 8px; 
+    font-weight: 600; 
+    cursor: pointer; 
+}
+
+/* Listas e Cards */
+.lista {
+    background-color: var(--cor-fundo-card);
+    border-radius: 12px;
+    padding: 1rem;
+    min-height: 400px;
+    box-shadow: var(--sombra-card);
+}
+.scrollable { max-height: 500px; overflow-y: auto; }
+
+.pergunta-card {
+    background-color: #fafafa;
+    border-left: 4px solid var(--cor-principal-clara);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+}
+.pergunta-card strong { display: block; margin-bottom: 0.75rem; color: var(--cor-texto-titulo); }
+.pergunta-card ol { list-style-type: upper-alpha; padding-left: 1.5rem; }
+.pergunta-card ol li.correta { font-weight: 600; color: var(--cor-correta); }
+
+.banco-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--cor-borda);
+}
+.banco-item:last-child { border-bottom: none; }
+.banco-item p { margin: 0; flex-grow: 1; padding-right: 1rem; }
+.btn-adicionar-banco { 
+    background-color: var(--cor-sucesso); 
+    color: white; border: none; 
+    padding: 0.4rem 0.8rem; 
+    border-radius: 6px; 
+    cursor: pointer; 
+}
+
+/* --- MODAL (ESTILO KAHOOT) --- */
+.modal-overlay { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(17, 24, 39, 0.6); 
+    backdrop-filter: blur(5px); 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000; 
+}
+
+.modal-content { 
+    background-color: white; 
+    padding: 2rem; 
+    border-radius: 12px; 
+    max-width: 700px;
+    width: 90%; 
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); 
+}
+
+.kahoot-modal h2 {
+    text-align: center;
+    font-size: 1.5rem;
+    color: var(--cor-texto-titulo);
+    margin-bottom: 1.5rem;
+}
+
+.kahoot-modal textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 2px solid var(--cor-borda);
+    resize: vertical;
+    font-size: 1.1rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.kahoot-opcoes-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.kahoot-opcao {
+    display: flex;
+    align-items: center;
+    background-color: var(--cor-fundo-card);
+    border-radius: 8px;
+    border: 2px solid var(--cor-borda);
+    padding: 0.5rem;
+}
+
+.kahoot-icone-fundo {
+    background-color: var(--cor-kahoot);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.kahoot-icone {
+    width: 32px;
+    height: 32px;
+    fill: white;
+}
+
+.input-opcao {
+    flex-grow: 1;
+    border: none;
+    background: none;
+    padding: 0 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--cor-texto-titulo);
+}
+
+.input-opcao:focus {
+    outline: none;
+}
+
+.kahoot-radio {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.5rem;
+    cursor: pointer;
+}
+
+.modal-actions { 
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 1rem; 
+    margin-top: 2rem; 
+}
+.modal-actions button { 
+    padding: 0.6rem 1.2rem; 
+    border-radius: 8px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    border: 1px solid transparent; 
+}
+.btn-primary { background-color: var(--cor-principal); color: white; }
+.btn-secondary { background-color: var(--cor-fundo-pagina); border-color: var(--cor-borda); color: var(--cor-texto-titulo); }
+
+/* Toast Notification */
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: var(--sombra-card);
+    font-size: 1rem;
+    font-weight: 500;
+    color: white;
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease-in-out;
+}
+.toast-notification.show {
+    opacity: 1;
+    visibility: visible;
+}
+.toast-notification.success {
+    background-color: var(--cor-sucesso);
+}
+.toast-notification.error {
+    background-color: var(--cor-erro);
+}
+

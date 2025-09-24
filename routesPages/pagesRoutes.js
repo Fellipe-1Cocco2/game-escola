@@ -2,44 +2,22 @@ const express = require('express');
 const path = require('path');
 const router = express.Router();
 
-// --- Rotas Públicas ---
-router.get('/', (req, res) => {
-     res.sendFile(path.join(__dirname, '..','public', 'pages', 'index.html'))
-});
+// Função helper para servir ficheiros
+const servePage = (pageName) => (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'pages', `${pageName}.html`));
+};
 
-router.get('/login', (req, res) => {
-     res.sendFile(path.join(__dirname, '..','public', 'pages', 'login.html'))
-});
+// Rotas públicas
+router.get('/', servePage('index'));
+router.get('/login', servePage('login'));
+router.get('/cadastro', servePage('cadastro'));
+router.get('/jogar', servePage('aluno-login')); // Aluno faz login aqui
 
-router.get('/cadastro', (req, res) => {
-     res.sendFile(path.join(__dirname, '..','public', 'pages', 'cadastro.html'))
-});
-
-router.get('/admin', (req, res) => {
-     res.sendFile(path.join(__dirname, '..','public', 'pages', 'admin.html'))
-});
-
-// Rota de login para o aluno
-router.get('/jogar', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'aluno-login.html'));
-});
-
-// CORREÇÃO: Rota para a página de tarefas (depois do login do aluno)
-router.get('/tarefas', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'tarefas.html'));
-});
-
-
-// --- Rotas Protegidas (Exigem Login do Professor) ---
-router.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'dashboard.html'));
-});
-
-// Rota dinâmica para uma sala específica
-router.get('/sala/:salaId', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'pages', 'sala.html'));
-});
-
+// Rotas que servem as páginas principais para o frontend (a proteção é feita no lado do cliente)
+router.get('/dashboard', servePage('dashboard'));
+router.get('/sala/:salaId', servePage('sala'));
+router.get('/tarefa/:tarefaId/sala/:salaId', servePage('pergunta')); // Nova rota para a página da tarefa
+router.get('/tarefas', servePage('tarefas')); // Página do aluno para ver as tarefas
 
 module.exports = router;
 

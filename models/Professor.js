@@ -25,7 +25,7 @@ const professorSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Hook para criptografar a senha
+// Hook para criptografar a senha antes de salvar
 professorSchema.pre('save', async function(next) {
     if (!this.isModified('password')) {
         return next();
@@ -35,7 +35,7 @@ professorSchema.pre('save', async function(next) {
     next();
 });
 
-// Método para comparar senhas
+// Método para comparar a senha digitada com a senha no banco de dados
 professorSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Tarefa</title>
+    <link rel="stylesheet" href="/styles/pergunta.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="page-header">
+        <div class="header-content">
+            <div class="header-info">
+                <a href="#" id="voltar-sala-link" class="btn-voltar">&larr; Voltar para a Sala</a>
+                <h1 id="titulo-tarefa-header">Carregando Tarefa...</h1>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="content-grid">
+            <!-- Coluna para Perguntas da Tarefa -->
+            <div class="coluna">
+                <div class="coluna-header">
+                    <h3>Perguntas da Tarefa</h3>
+                </div>
+                <div id="lista-perguntas-tarefa" class="lista">
+                    <!-- Perguntas da tarefa serão carregadas aqui -->
+                </div>
+            </div>
+
+            <!-- Coluna para o Banco de Perguntas -->
+            <div class="coluna">
+                <div class="coluna-header">
+                    <h3>Banco de Perguntas</h3>
+                    <button id="btn-abrir-modal-pergunta" class="btn-adicionar">+ Criar Nova Pergunta</button>
+                </div>
+                <div id="banco-perguntas-container" class="lista scrollable">
+                    <!-- Perguntas do banco serão carregadas aqui -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para Criar Nova Pergunta (ESTILO KAHOOT) -->
+    <div id="modal-nova-pergunta" class="modal-overlay" style="display: none;">
+        <div class="modal-content kahoot-modal">
+            <h2>Criar Nova Pergunta</h2>
+            <form id="form-nova-pergunta">
+                <textarea id="texto-pergunta" rows="4" placeholder="Comece a digitar a sua pergunta..." required></textarea>
+                
+                <div class="kahoot-opcoes-container">
+                    <!-- Opção 1: Triângulo Vermelho -->
+                    <div class="kahoot-opcao">
+                        <div class="kahoot-icone-fundo" style="--cor-kahoot: #e21b3c;">
+                            <svg class="kahoot-icone" viewBox="0 0 32 32"><path d="M16 2 L2 26 L30 26 Z"></path></svg>
+                        </div>
+                        <input type="text" class="input-opcao" placeholder="Adicionar resposta 1" required>
+                        <input type="radio" name="opcao-correta" value="0" class="kahoot-radio" required>
+                    </div>
+
+                    <!-- Opção 2: Losango Azul -->
+                    <div class="kahoot-opcao">
+                        <div class="kahoot-icone-fundo" style="--cor-kahoot: #1368ce;">
+                            <svg class="kahoot-icone" viewBox="0 0 32 32"><path d="M16 2 L30 16 L16 30 L2 16 Z"></path></svg>
+                        </div>
+                        <input type="text" class="input-opcao" placeholder="Adicionar resposta 2" required>
+                        <input type="radio" name="opcao-correta" value="1" class="kahoot-radio">
+                    </div>
+
+                    <!-- Opção 3: Círculo Amarelo -->
+                    <div class="kahoot-opcao">
+                        <div class="kahoot-icone-fundo" style="--cor-kahoot: #d89e00;">
+                           <svg class="kahoot-icone" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14"></circle></svg>
+                        </div>
+                        <input type="text" class="input-opcao" placeholder="Adicionar resposta 3" required>
+                        <input type="radio" name="opcao-correta" value="2" class="kahoot-radio">
+                    </div>
+
+                    <!-- Opção 4: Quadrado Verde -->
+                    <div class="kahoot-opcao">
+                        <div class="kahoot-icone-fundo" style="--cor-kahoot: #299a0e;">
+                            <svg class="kahoot-icone" viewBox="0 0 32 32"><path d="M2 2 H30 V30 H2 Z"></path></svg>
+                        </div>
+                        <input type="text" class="input-opcao" placeholder="Adicionar resposta 4" required>
+                        <input type="radio" name="opcao-correta" value="3" class="kahoot-radio">
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary btn-fechar-modal">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Pergunta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="toast-notification" class="toast-notification"></div>
+    <script src="/script/pergunta.js"></script>
+</body>
+</html>
+
