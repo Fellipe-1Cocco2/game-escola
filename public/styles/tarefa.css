@@ -275,4 +275,49 @@ body {
 .toast-notification.error {
     background-color: var(--cor-erro);
 }
+.tabs-nav {
+    display: flex;
+    border-bottom: 2px solid var(--cor-borda);
+    margin-bottom: 2rem;
+}
+.tab-link {
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cor-texto-corpo);
+    position: relative;
+    top: 2px;
+    border-bottom: 2px solid transparent;
+}
+.tab-link.active {
+    color: var(--cor-principal);
+    border-bottom-color: var(--cor-principal);
+}
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
 
+/* Estilos para a lista de resultados */
+.resultado-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--cor-borda);
+}
+.resultado-item:last-child {
+    border-bottom: none;
+}
+.resultado-aluno-nome {
+    font-weight: 500;
+}
+.resultado-pontuacao {
+    font-weight: 600;
+    background-color: var(--cor-principal-clara);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+}

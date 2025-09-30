@@ -7,7 +7,7 @@ const {
     criarSala, excluirSala, getTodasAsSalas, getSalaDetalhes, convidarEditor,
     adicionarAluno, atualizarAluno, excluirAluno, alunoLogin,
     adicionarTarefa, getTarefaDetalhes,
-    criarPerguntaParaTarefa, getBancoDePerguntas, adicionarPerguntaDoBanco
+    criarPerguntaParaTarefa, getBancoDePerguntas, adicionarPerguntaDoBanco, salvarResultadoTarefa
 } = require('../controllers/gameController');
 
 // --- ROTAS DE SALA (PROTEGIDAS) ---
@@ -26,16 +26,21 @@ router.post('/salas/:salaId/alunos', protect, adicionarAluno);
 router.route('/salas/:salaId/alunos/:alunoId')
     .put(protect, atualizarAluno)
     .delete(protect, excluirAluno);
-router.post('/aluno-login', alunoLogin); // Rota pública para o login do aluno
+
+// Rota pública para o login do aluno (CORRIGIDA)
+router.post('/aluno/login', alunoLogin); 
 
 // --- ROTAS DE TAREFA (PROTEGIDAS) ---
 router.post('/salas/:salaId/tarefas', protect, adicionarTarefa);
 router.get('/salas/:salaId/tarefas/:tarefaId', protect, getTarefaDetalhes);
 
 // --- ROTAS DE PERGUNTAS (PROTEGIDAS) ---
-router.get('/perguntas', protect, getBancoDePerguntas); // Busca todo o banco
-router.post('/salas/:salaId/tarefas/:tarefaId/perguntas', protect, criarPerguntaParaTarefa); // Cria uma nova
-router.post('/salas/:salaId/tarefas/:tarefaId/banco-perguntas', protect, adicionarPerguntaDoBanco); // Adiciona uma existente
+router.get('/perguntas', protect, getBancoDePerguntas);
+router.post('/salas/:salaId/tarefas/:tarefaId/perguntas', protect, criarPerguntaParaTarefa);
+router.post('/salas/:salaId/tarefas/:tarefaId/banco-perguntas', protect, adicionarPerguntaDoBanco);
+
+// Esta rota é chamada pelo aluno no final do jogo para salvar sua pontuação
+router.post('/salas/:salaId/tarefas/:tarefaId/resultados', salvarResultadoTarefa);
 
 module.exports = router;
 

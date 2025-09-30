@@ -35,9 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Guardando no sessionStorage o nome:", data.aluno.nome);
 
             // Guarda os dados no sessionStorage para a próxima página usar
+            sessionStorage.setItem('aluno_id', data.aluno._id); // GUARDA O ID DO ALUNO
             sessionStorage.setItem('aluno_nome', data.aluno.nome);
-            sessionStorage.setItem('tarefas', JSON.stringify(data.tarefas));
-            
+            sessionStorage.setItem('tarefas', JSON.stringify(data.tarefas))
             // Redireciona para a página de tarefas
             window.location.href = '/tarefas';
 

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sabidin - É Hora do Jogo!</title>
+    <link rel="stylesheet" href="/styles/jogar-tarefa.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container" class="game-container">
+        <!-- Tela de Carregamento -->
+        <div id="loading-screen">Carregando...</div>
+
+        <!-- Tela do Jogo -->
+        <div id="game-screen" class="hidden">
+            <header class="game-header">
+                <div class="progress-info">
+                    <span id="question-counter">Pergunta 1 de 5</span>
+                </div>
+                <div class="task-title" id="task-title">Título da Tarefa</div>
+                <div class="score-info">
+                    <span>Pontos: <strong id="score-display">0</strong></span>
+                </div>
+            </header>
+            <main class="question-area">
+                <h2 id="question-text">Qual é a capital do Brasil?</h2>
+            </main>
+            <footer class="answers-grid">
+                <button class="answer-btn" data-index="0">
+                    <div class="answer-shape triangle"></div>
+                    <span class="answer-text">Opção A</span>
+                </button>
+                <button class="answer-btn" data-index="1">
+                    <div class="answer-shape diamond"></div>
+                    <span class="answer-text">Opção B</span>
+                </button>
+                <button class="answer-btn" data-index="2">
+                    <div class="answer-shape circle"></div>
+                    <span class="answer-text">Opção C</span>
+                </button>
+                <button class="answer-btn" data-index="3">
+                    <div class="answer-shape square"></div>
+                    <span class="answer-text">Opção D</span>
+                </button>
+            </footer>
+        </div>
+
+        <!-- Tela de Resultados -->
+        <div id="results-screen" class="results-screen hidden">
+            <h1>Fim de Jogo!</h1>
+            <p>Sua pontuação final foi:</p>
+            <div class="final-score" id="final-score">0</div>
+            <p id="final-message">Mandou bem!</p>
+            <button id="btn-voltar-tarefas" class="btn-primary">Voltar para Tarefas</button>
+        </div>
+    </div>
+    <script src="/script/jogar-tarefa.js"></script>
+</body>
+</html>

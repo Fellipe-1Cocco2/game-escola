@@ -16,8 +16,9 @@ router.get('/jogar', servePage('aluno-login')); // Aluno faz login aqui
 // Rotas que servem as páginas principais para o frontend (a proteção é feita no lado do cliente)
 router.get('/dashboard', servePage('dashboard'));
 router.get('/sala/:salaId', servePage('sala'));
-router.get('/tarefa/:tarefaId/sala/:salaId', servePage('pergunta')); // Nova rota para a página da tarefa
+router.get('/tarefa/:tarefaId/sala/:salaId', servePage('tarefa')); // Nova rota para a página da tarefa
 router.get('/tarefas', servePage('tarefas')); // Página do aluno para ver as tarefas
+router.get('/jogar/tarefa/:tarefaId', servePage('jogar-tarefa'));
 
 module.exports = router;
 

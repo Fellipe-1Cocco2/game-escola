@@ -1,23 +1,71 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    const getElement = (id, required = true) => {
+        const el = document.getElementById(id);
+        if (!el && required) {
+            console.error(`ERRO CRÍTICO: O elemento com ID #${id} não foi encontrado no HTML.`);
+        }
+        return el;
+    };
+
+
     // --- SELETORES ---
-    const tituloTarefaHeader = document.getElementById('titulo-tarefa-header');
-    const listaPerguntasTarefa = document.getElementById('lista-perguntas-tarefa');
-    const bancoPerguntasContainer = document.getElementById('banco-perguntas-container');
-    const btnAbrirModalPergunta = document.getElementById('btn-abrir-modal-pergunta');
-    const modalNovaPergunta = document.getElementById('modal-nova-pergunta');
-    const formNovaPergunta = document.getElementById('form-nova-pergunta');
-    const toastNotification = document.getElementById('toast-notification');
-    let toastTimeout;
-    const voltarSalaLink = document.getElementById('voltar-sala-link');
+    const tituloTarefaHeader = getElement('titulo-tarefa-header');
+    const listaPerguntasTarefa = getElement('lista-perguntas-tarefa');
+    const bancoPerguntasContainer = getElement('banco-perguntas-container');
+    const btnAbrirModalPergunta = getElement('btn-abrir-modal-pergunta');
+    const modalNovaPergunta = getElement('modal-nova-pergunta');
+    const formNovaPergunta = getElement('form-nova-pergunta');
+    const toastNotification = getElement('toast-notification');
+    const voltarSalaLink = getElement('voltar-sala-link');
+    const btnFecharModal = document.querySelector('#modal-nova-pergunta .btn-fechar-modal');
+
+    if (!tituloTarefaHeader || !listaPerguntasTarefa || !bancoPerguntasContainer || !btnAbrirModalPergunta || !modalNovaPergunta || !formNovaPergunta || !btnFecharModal) {
+        return; // Impede a execução e o erro
+    }
+
+    const tabLinks = document.querySelectorAll('.tab-link');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+
+    tabLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            const tabId = link.getAttribute('data-tab');
+            tabLinks.forEach(l => l.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
+            link.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        });
+    });
 
     // Extrai IDs da URL
+    let toastTimeout;
     const pathParts = window.location.pathname.split('/');
     const tarefaId = pathParts[2];
     const salaId = pathParts[4];
-    voltarSalaLink.href = `/sala/${salaId}`; // Define o link de volta
+    voltarSalaLink.href = `/sala/${salaId}`;
 
     let tarefaAtual = null;
+
+    const renderResultados = (resultados) => {
+        listaResultados.innerHTML = '';
+        if (!resultados || resultados.length === 0) {
+            listaResultados.innerHTML = '<div class="resultado-item">Nenhum aluno concluiu esta tarefa ainda.</div>';
+            return;
+        }
+        // Ordena os resultados pela maior pontuação
+        resultados.sort((a, b) => b.pontuacao - a.pontuacao);
+
+        resultados.forEach(res => {
+            const item = document.createElement('div');
+            item.className = 'resultado-item';
+            item.innerHTML = `
+                <span class="resultado-aluno-nome">${res.alunoNome}</span>
+                <span class="resultado-pontuacao">${res.pontuacao} / ${res.totalPerguntas}</span>
+            `;
+            listaResultados.appendChild(item);
+        });
+    };
 
     // --- FUNÇÕES DE RENDERIZAÇÃO ---
     const renderPerguntasDaTarefa = (perguntas) => {
@@ -27,10 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         perguntas.forEach(item => {
+            if (!item.pergunta) return; // Segurança extra
             const card = document.createElement('div');
             card.className = 'pergunta-card';
             
-            let opcoesHtml = '<ol type="A">';
+            let opcoesHtml = '<ol>';
             item.pergunta.opcoes.forEach((opcao, index) => {
                 const classeCorreta = index === item.pergunta.opcaoCorreta ? ' class="correta"' : '';
                 opcoesHtml += `<li${classeCorreta}>${opcao}</li>`;
@@ -54,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.innerHTML = `<p>${pergunta.texto}</p>`;
             
             const btnAdicionar = document.createElement('button');
-            btnAdicionar.className = 'btn btn-secondary';
+            btnAdicionar.className = 'btn-adicionar-banco';
             btnAdicionar.textContent = 'Adicionar';
             btnAdicionar.onclick = () => handleAdicionarDoBanco(pergunta._id);
             
@@ -82,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tituloTarefaHeader.textContent = tarefaAtual.titulo;
             renderPerguntasDaTarefa(tarefaAtual.perguntas);
             renderBancoDePerguntas(bancoDePerguntas);
+            renderResultados(tarefaAtual.resultados);
             
         } catch (error) {
             console.error("Erro ao carregar dados da tarefa:", error);
@@ -120,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT LISTENERS ---
     btnAbrirModalPergunta.addEventListener('click', () => modalNovaPergunta.style.display = 'flex');
-    document.querySelector('#modal-nova-pergunta .btn-fechar-modal').addEventListener('click', () => modalNovaPergunta.style.display = 'none');
+    btnFecharModal.addEventListener('click', () => modalNovaPergunta.style.display = 'none');
     formNovaPergunta.addEventListener('submit', handleCriarNovaPergunta);
 
     // --- FUNÇÃO AUXILIAR E INICIALIZAÇÃO ---

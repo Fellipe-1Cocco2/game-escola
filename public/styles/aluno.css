@@ -3,7 +3,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
-    --cor-fundo-gradiente: linear-gradient(135deg, #fbcfe8 0%, #fde68a 100%);
+    --cor-fundo-gradiente: #ffcc00;
     --cor-cartao-login: white;
     --cor-sombra: rgba(0, 0, 0, 0.08);
     --cor-texto-principal: #374151;
@@ -210,29 +210,93 @@ body {
     box-shadow: 0 10px 30px var(--cor-sombra);
     width: 100%;
     max-width: 800px;
+    /* Adiciona um espaçamento entre os cards */
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; 
 }
 
+
+/* --- NOVOS ESTILOS PARA OS CARDS DE TAREFA --- */
 .tarefa-card {
-    background-color: #f0fdf4;
-    border-left: 5px solid #4ade80;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1rem;
-    border-radius: 8px;
-    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.25rem;
+    border-radius: 12px;
+    background-color: #f0fdf4; /* Verde muito claro */
+    border: 1px solid #bbf7d0;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.tarefa-card.disponivel:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.07);
+}
+
+.tarefa-icone {
+    font-size: 2rem;
+}
+
+.tarefa-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.tarefa-titulo {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #14532d; /* Verde escuro */
+}
+
+.tarefa-prazo {
+    font-size: 0.85rem;
+    color: #15803d; /* Verde médio */
+    margin-top: 4px;
+}
+
+.btn-jogar-tarefa {
+    background: linear-gradient(to right, #22c55e, #16a34a);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
+    transition: all 0.2s ease;
+}
+
+.btn-jogar-tarefa:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(34, 197, 94, 0.4);
+}
+
+/* Estilos para a tarefa ENCERRADA */
+.tarefa-card.encerrada {
+    background-color: #f1f5f9; /* Cinza claro */
+    border: 1px solid #e2e8f0;
+}
+
+.tarefa-card.encerrada .tarefa-titulo {
+    color: #64748b; /* Cinza médio */
+    text-decoration: line-through;
+}
+
+.tarefa-card.encerrada .tarefa-prazo {
+    color: #94a3b8; /* Cinza escuro */
     font-weight: 500;
-    color: #166534;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    transition: transform 0.2s ease-in-out;
 }
 
-.tarefa-card:hover {
-    transform: scale(1.02);
+.tarefa-card.encerrada .btn-jogar-tarefa {
+    background: #cbd5e1; /* Cinza */
+    color: #64748b;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
-.tarefa-card:last-child {
-    margin-bottom: 0;
-}
-
+/* Mensagem de "Nenhuma tarefa" */
 .tarefa-card-vazio {
     background-color: white;
     border: 1px solid #e5e7eb;
