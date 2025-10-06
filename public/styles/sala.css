@@ -180,6 +180,25 @@ body {
 }
 
 
+.actions-group {
+    display: flex;
+    gap: 0.75rem; /* Espaçamento entre os botões */
+}
+
+/* Estilo para o novo botão "Vincular Existente" */
+.btn-adicionar-outline {
+    background-color: transparent;
+    border: 2px solid var(--cor-principal);
+    color: var(--cor-principal);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease-in-out;
+}
+
+
 /* (NOVOS ESTILOS) para os botões de ação do aluno */
 .lista-item-actions { display: flex; gap: 0.75rem; }
 

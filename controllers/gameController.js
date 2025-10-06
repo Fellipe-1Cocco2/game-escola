@@ -1,6 +1,7 @@
 const Sala = require('../models/Sala');
 const Professor = require('../models/Professor');
 const Pergunta = require('../models/Pergunta');
+const Aluno = require('../models/Aluno');
 
 // --- "LOGIN" DO ALUNO (PARTE CRÍTICA) ---
 const alunoLogin = async (req, res) => {
@@ -10,35 +11,133 @@ const alunoLogin = async (req, res) => {
             return res.status(400).json({ message: 'Código da Sala e RA são obrigatórios.' });
         }
         
-        // Esta é a parte mais importante. O .populate() aninhado
-        // busca os dados completos de cada pergunta.
-        const sala = await Sala.findById(codigoSala).populate({
+        const aluno = await Aluno.findOne({ RA });
+        if (!aluno) {
+            return res.status(401).json({ message: 'RA inválido ou não cadastrado no sistema.' });
+        }
+        
+        const sala = await Sala.findOne({ 
+            _id: codigoSala, 
+            alunos: aluno._id
+        }).populate({
             path: 'tarefas',
             populate: {
-                path: 'perguntas.pergunta',
+                path: 'perguntas.pergunta', // Popula os detalhes das perguntas dentro das tarefas
                 model: 'Pergunta'
             }
         });
 
         if (!sala) {
-            return res.status(404).json({ message: 'Sala não encontrada.' });
+            return res.status(404).json({ message: 'RA não encontrado nesta sala ou código da sala inválido.' });
         }
         
-        const aluno = sala.alunos.find(a => a.RA === RA);
-        if (!aluno) {
-            return res.status(401).json({ message: 'RA não encontrado nesta sala.' });
-        }
-        
+        // --- INÍCIO DA CORREÇÃO ---
+        // Convertemos o documento do Mongoose para um objeto JavaScript simples para podermos modificá-lo
+        const salaObject = sala.toObject();
+
+        // Adicionamos a propriedade 'salaId' em cada tarefa antes de enviar para o frontend
+        salaObject.tarefas = salaObject.tarefas.map(tarefa => ({
+            ...tarefa,
+            salaId: sala._id 
+        }));
+        // --- FIM DA CORREÇÃO ---
+
         res.status(200).json({
             success: true,
             aluno: { _id: aluno._id, nome: aluno.nome, RA: aluno.RA },
-            tarefas: sala.tarefas
+            tarefas: salaObject.tarefas // Enviamos as tarefas modificadas
         });
+
     } catch (error) {
         console.error('Erro no login do aluno:', error);
         res.status(500).json({ message: 'Erro no servidor.' });
     }
 };
+
+const salvarProgressoAluno = async (req, res) => {
+    try {
+        const { salaId, tarefaId } = req.params;
+        const { alunoId, perguntaId, respostaIndex, acertou, pontuacaoAtual } = req.body;
+
+        // 1. Encontra a sala
+        const sala = await Sala.findById(salaId);
+        if (!sala) {
+            return res.status(404).json({ message: 'Sala não encontrada.' });
+        }
+
+        // 2. Encontra a tarefa específica dentro da sala
+        const tarefa = sala.tarefas.id(tarefaId);
+        if (!tarefa) {
+            return res.status(404).json({ message: 'Tarefa não encontrada.' });
+        }
+
+        // 3. Encontra o progresso para este aluno específico
+        let progresso = tarefa.progressos.find(p => p.alunoId.equals(alunoId));
+
+        // 4. Se não houver progresso, cria um novo
+        if (!progresso) {
+            tarefa.progressos.push({ 
+                alunoId: alunoId, 
+                status: 'em-andamento', 
+                respostas: [], 
+                pontuacao: 0 
+            });
+            // Pega a referência para o progresso recém-criado
+            progresso = tarefa.progressos[tarefa.progressos.length - 1];
+        }
+
+        // 5. Adiciona a nova resposta e atualiza a pontuação
+        progresso.respostas.push({ perguntaId, respostaIndex, acertou });
+        progresso.pontuacao = pontuacaoAtual;
+
+        // 6. Verifica se a tarefa foi concluída
+        // Compara o número de respostas com o número total de perguntas da tarefa
+        if (progresso.respostas.length >= tarefa.perguntas.length) {
+            progresso.status = 'concluido';
+            progresso.dataConclusao = new Date();
+        }
+
+        // 7. Salva o documento principal da sala com todas as alterações
+        await sala.save();
+
+        res.status(200).json({ message: 'Progresso salvo com sucesso!' });
+
+    } catch (error) {
+        console.error('Erro ao salvar progresso:', error);
+        res.status(500).json({ message: 'Erro no servidor ao salvar progresso.' });
+    }
+};
+
+const getTarefasDaSala = async (req, res) => {
+    try {
+        const { salaId } = req.params;
+        const sala = await Sala.findById(salaId)
+            .populate({
+                path: 'tarefas',
+                populate: {
+                    path: 'perguntas.pergunta',
+                    model: 'Pergunta'
+                }
+            });
+
+        if (!sala) {
+            return res.status(404).json({ message: 'Sala não encontrada.' });
+        }
+
+        // Adiciona o salaId a cada tarefa para uso no frontend
+        const tarefasComSalaId = sala.tarefas.map(tarefa => ({
+            ...tarefa.toObject(),
+            salaId: sala._id
+        }));
+        
+        res.status(200).json(tarefasComSalaId);
+
+    } catch (error) {
+        console.error('Erro ao buscar tarefas da sala:', error);
+        res.status(500).json({ message: 'Erro no servidor.' });
+    }
+};
+
 
 
 // --- OUTRAS FUNÇÕES (sem alterações) ---
@@ -82,7 +181,11 @@ const getTodasAsSalas = async (req, res) => {
 
 const getSalaDetalhes = async (req, res) => {
     try {
-        const sala = await Sala.findById(req.params.salaId).populate('criador', 'name email').populate('editoresConvidados', 'name email');
+        const sala = await Sala.findById(req.params.salaId)
+            .populate('criador', 'name email')
+            .populate('editoresConvidados', 'name email')
+            .populate('alunos'); // Adicionado o .populate() para buscar os dados dos alunos
+
         if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
         res.status(200).json(sala);
     } catch (error) {
@@ -109,24 +212,51 @@ const convidarEditor = async (req, res) => {
     }
 };
 
-const adicionarAluno = async (req, res) => {
+const cadastrarEAdicionarAluno = async (req, res) => {
     try {
         const { nome, RA } = req.body;
-        const sala = await Sala.findById(req.params.salaId);
-        if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
+        const { salaId } = req.params;
         
-        const podeEditar = sala.criador.equals(req.professor._id) || sala.editoresConvidados.some(id => id.equals(req.professor._id));
-        if (!podeEditar) return res.status(403).json({ message: 'Você não tem permissão para editar esta sala.' });
+        const alunoExistente = await Aluno.findOne({ RA });
+        if (alunoExistente) {
+            return res.status(409).json({ message: 'Um aluno com este RA já existe. Use a função "Vincular Aluno".' });
+        }
 
-        const raExistente = sala.alunos.some(aluno => aluno.RA === RA);
-        if (raExistente) return res.status(409).json({ message: 'Um aluno com este RA já existe nesta sala.' });
+        const novoAluno = await Aluno.create({ nome, RA });
 
-        sala.alunos.push({ nome, RA });
-        await sala.save();
-        res.status(201).json(sala);
+        await Sala.findByIdAndUpdate(salaId, { $push: { alunos: novoAluno._id } });
+        
+        res.status(201).json(novoAluno);
     } catch (error) {
-        console.error('Erro ao adicionar aluno:', error);
+        console.error('Erro ao cadastrar e adicionar aluno:', error);
         res.status(500).json({ message: 'Erro no servidor.' });
+    }
+};
+
+const vincularAlunoExistente = async (req, res) => {
+    try {
+        const { RA } = req.body;
+        const { salaId } = req.params;
+
+        const aluno = await Aluno.findOne({ RA });
+        if (!aluno) {
+            return res.status(404).json({ message: 'Nenhum aluno encontrado com este RA.' });
+        }
+
+        const salaOndeAlunoJaEsta = await Sala.findOne({ alunos: aluno._id });
+        if (salaOndeAlunoJaEsta) {
+            if (salaOndeAlunoJaEsta._id.equals(salaId)) {
+                return res.status(409).json({ message: `Este aluno já está nesta sala (${salaOndeAlunoJaEsta.num_serie}).` });
+            }
+            return res.status(409).json({ message: `Este aluno já está vinculado à sala "${salaOndeAlunoJaEsta.num_serie}". Não é possível adicioná-lo em duas salas.` });
+        }
+
+        await Sala.findByIdAndUpdate(salaId, { $push: { alunos: aluno._id } });
+
+        res.status(200).json(aluno);
+    } catch (error) {
+        console.error('Erro ao vincular aluno:', error);
+        res.status(500).json({ message: 'Ocorreu um erro interno ao tentar vincular o aluno.' });
     }
 };
 
@@ -135,40 +265,41 @@ const atualizarAluno = async (req, res) => {
         const { salaId, alunoId } = req.params;
         const { nome, RA } = req.body;
 
+        // 1. Verificação de Permissão (continua importante)
         const sala = await Sala.findById(salaId);
         if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
         
         const podeEditar = sala.criador.equals(req.professor._id) || sala.editoresConvidados.some(id => id.equals(req.professor._id));
-        if (!podeEditar) return res.status(403).json({ message: 'Você não tem permissão para editar.' });
+        if (!podeEditar) return res.status(403).json({ message: 'Você não tem permissão para editar nesta sala.' });
 
-        const aluno = sala.alunos.id(alunoId);
-        if (!aluno) {
-            return res.status(404).json({ message: 'Aluno não encontrado nesta sala.' });
+        // 2. Lógica Corrigida: Atualiza o documento do Aluno diretamente
+        const alunoAtualizado = await Aluno.findByIdAndUpdate(alunoId, { nome, RA }, { new: true, runValidators: true });
+
+        if (!alunoAtualizado) {
+            return res.status(404).json({ message: 'Aluno não encontrado.' });
         }
-        aluno.nome = nome;
-        aluno.RA = RA;
-        await sala.save();
-        res.status(200).json(sala);
+        
+        // 3. Retorna o aluno com os novos dados
+        res.status(200).json(alunoAtualizado);
+
     } catch (error) {
         console.error('Erro ao atualizar aluno:', error);
-        res.status(500).json({ message: 'Erro no servidor.' });
+        res.status(500).json({ message: 'Erro no servidor ao atualizar aluno.' });
     }
 };
 
 const excluirAluno = async (req, res) => {
     try {
         const { salaId, alunoId } = req.params;
-        const sala = await Sala.findById(salaId);
-        if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
-        const podeEditar = sala.criador.equals(req.professor._id) || sala.editoresConvidados.some(id => id.equals(req.professor._id));
-        if (!podeEditar) return res.status(403).json({ message: 'Você não tem permissão para excluir.' });
-        const aluno = sala.alunos.id(alunoId);
-         if (!aluno) return res.status(404).json({ message: 'Aluno não encontrado para excluir.' });
-        sala.alunos.pull(alunoId);
-        await sala.save();
-        res.status(200).json(sala);
+        
+        // Apenas remove o ID do aluno do array da sala
+        await Sala.findByIdAndUpdate(salaId, {
+            $pull: { alunos: alunoId }
+        });
+
+        res.status(200).json({ message: 'Aluno desvinculado da sala com sucesso.' });
     } catch (error) {
-        console.error('Erro ao excluir aluno:', error);
+        console.error('Erro ao desvincular aluno:', error);
         res.status(500).json({ message: 'Erro no servidor.' });
     }
 };
@@ -192,16 +323,68 @@ const adicionarTarefa = async (req, res) => {
 const getTarefaDetalhes = async (req, res) => {
     try {
         const { salaId, tarefaId } = req.params;
-        const sala = await Sala.findById(salaId).populate('tarefas.perguntas.pergunta');
+
+        // 1. Busca a sala e popula a lista de TODOS os alunos matriculados nela
+        const sala = await Sala.findById(salaId).populate('alunos', 'nome RA');
         if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
-        const tarefa = sala.tarefas.id(tarefaId);
+
+        // 2. Encontra a tarefa específica dentro da sala, populando os dados de progresso
+        const tarefa = await Sala.findOne({ "_id": salaId, "tarefas._id": tarefaId })
+            .populate({
+                path: 'tarefas',
+                match: { _id: tarefaId }, // Garante que estamos pegando a tarefa certa
+                populate: [
+                    { path: 'perguntas.pergunta', model: 'Pergunta' },
+                    { path: 'progressos.alunoId', model: 'Aluno', select: 'nome RA' }
+                ]
+            })
+            .then(s => s.tarefas.id(tarefaId));
+
         if (!tarefa) return res.status(404).json({ message: 'Tarefa não encontrada.' });
-        res.status(200).json(tarefa);
+
+        // 3. CRIA A LISTA DE RESULTADOS COMPLETA
+        const agora = new Date();
+        const tarefaEncerrada = tarefa.dataFechamento && agora > new Date(tarefa.dataFechamento);
+
+        const resultadosCompletos = sala.alunos.map(aluno => {
+            const progresso = tarefa.progressos.find(p => p.alunoId && p.alunoId.equals(aluno._id));
+
+            if (progresso) {
+                // Se o aluno tem progresso, retorna os dados
+                return {
+                    alunoId: aluno._id,
+                    nome: aluno.nome,
+                    RA: aluno.RA,
+                    status: progresso.status,
+                    pontuacao: progresso.pontuacao,
+                    respostasDadas: progresso.respostas.length
+                };
+            } else {
+                // Se o aluno não tem progresso
+                return {
+                    alunoId: aluno._id,
+                    nome: aluno.nome,
+                    RA: aluno.RA,
+                    // Define o status com base na data de encerramento da tarefa
+                    status: tarefaEncerrada ? 'nao-entregue' : 'nao-iniciado',
+                    pontuacao: 0,
+                    respostasDadas: 0
+                };
+            }
+        });
+
+        // 4. Monta o objeto final para enviar ao frontend
+        const tarefaFinal = tarefa.toObject();
+        tarefaFinal.resultadosCompletos = resultadosCompletos;
+
+        res.status(200).json(tarefaFinal);
+
     } catch (error) {
         console.error('Erro ao buscar detalhes da tarefa:', error);
         res.status(500).json({ message: 'Erro no servidor.' });
     }
 };
+
 
 const criarPerguntaParaTarefa = async (req, res) => {
     try {
@@ -212,8 +395,12 @@ const criarPerguntaParaTarefa = async (req, res) => {
         if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
         const tarefa = sala.tarefas.id(tarefaId);
         if (!tarefa) return res.status(404).json({ message: 'Tarefa não encontrada.' });
+
+        // A linha abaixo está corrigida para enviar o objeto
         tarefa.perguntas.push({ pergunta: novaPergunta._id });
         await sala.save();
+
+        // A linha abaixo usa o populate correto
         const tarefaAtualizada = await Sala.findById(salaId).populate('tarefas.perguntas.pergunta');
         res.status(201).json(tarefaAtualizada.tarefas.id(tarefaId));
     } catch (error) {
@@ -242,8 +429,12 @@ const adicionarPerguntaDoBanco = async (req, res) => {
         if (!tarefa) return res.status(404).json({ message: 'Tarefa não encontrada.' });
         const perguntaJaExiste = tarefa.perguntas.some(p => p.pergunta.equals(perguntaId));
         if(perguntaJaExiste) return res.status(409).json({ message: 'Esta pergunta já foi adicionada.' });
+
+        // A linha abaixo está corrigida para enviar o objeto
         tarefa.perguntas.push({ pergunta: perguntaId });
         await sala.save();
+        
+        // A linha abaixo usa o populate correto
         const tarefaAtualizada = await Sala.findById(salaId).populate('tarefas.perguntas.pergunta');
         res.status(200).json(tarefaAtualizada.tarefas.id(tarefaId));
     } catch (error) {
@@ -288,8 +479,12 @@ const salvarResultadoTarefa = async (req, res) => {
 
 module.exports = {
     criarSala, excluirSala, getTodasAsSalas, getSalaDetalhes, convidarEditor,
-    adicionarAluno, atualizarAluno, excluirAluno, alunoLogin,
-    adicionarTarefa, getTarefaDetalhes,
+    alunoLogin,
+    cadastrarEAdicionarAluno,
+    vincularAlunoExistente,
+    atualizarAluno, 
+    excluirAluno,
+    adicionarTarefa, getTarefaDetalhes, getTarefasDaSala,
     criarPerguntaParaTarefa, getBancoDePerguntas, adicionarPerguntaDoBanco,
-    salvarResultadoTarefa
+    salvarProgressoAluno
 };

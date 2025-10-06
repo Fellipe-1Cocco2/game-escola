@@ -4,36 +4,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const listaTarefasEl = document.getElementById('lista-tarefas-jogo');
     const btnSair = document.getElementById('btn-sair');
 
-
-    if (!nomeAlunoEl || !subtituloTarefasEl || !listaTarefasEl || !btnSair) {
-        console.error("Erro crítico: Elementos essenciais da página de tarefas não foram encontrados.");
-        return window.location.href = '/jogar';
-    }
-
-    btnSair.addEventListener('click', () => {
-        sessionStorage.clear();
-        window.location.href = '/jogar';
-    });
-
     const nomeAluno = sessionStorage.getItem('aluno_nome');
-    const tarefasString = sessionStorage.getItem('tarefas');
+    const alunoId = sessionStorage.getItem('aluno_id');
+    const salaId = sessionStorage.getItem('sala_id_atual');
 
-    if (!nomeAluno || !tarefasString) {
-        return window.location.href = '/jogar';
+    // Validação inicial
+    if (!nomeAlunoEl || !listaTarefasEl || !btnSair) {
+        console.error("Erro crítico: Elementos essenciais não foram encontrados.");
+        return;
+    }
+    if (!nomeAluno || !alunoId || !salaId) {
+        alert("Sessão inválida. Por favor, faça o login novamente.");
+        window.location.href = '/jogar';
+        return;
     }
 
     nomeAlunoEl.textContent = nomeAluno;
-    const tarefas = JSON.parse(tarefasString);
 
-    if (tarefas.length === 0) {
-        subtituloTarefasEl.style.display = 'none';
-        listaTarefasEl.innerHTML = `<div class="tarefa-card-vazio">Uau! Nenhuma tarefa por enquanto. Bom descanso!</div>`;
-    } else {
+    // Função para renderizar as tarefas na tela
+    const renderizarTarefas = (tarefas) => {
+        listaTarefasEl.innerHTML = ''; // Limpa a lista antiga
+        if (tarefas.length === 0) {
+            subtituloTarefasEl.style.display = 'none';
+            listaTarefasEl.innerHTML = `<div class="tarefa-card-vazio">Nenhuma tarefa por enquanto. Bom descanso!</div>`;
+            return;
+        }
+
         subtituloTarefasEl.textContent = "Mostre que você é um Sabidin!";
-        listaTarefasEl.innerHTML = '';
-        
         tarefas.forEach(tarefa => {
             const tarefaCard = document.createElement('div');
+            const progresso = tarefa.progressos ? tarefa.progressos.find(p => p.alunoId === alunoId) : null;
+            const concluida = progresso && progresso.status === 'concluido';
             
             const agora = new Date();
             let encerrada = false;
@@ -45,36 +46,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (agora > dataEncerramento) encerrada = true;
             }
             
-            tarefaCard.className = `tarefa-card ${encerrada ? 'encerrada' : 'disponivel'}`;
-            
-            // Adiciona o ID da tarefa ao botão para sabermos em qual tarefa clicar
+            const indisponivel = encerrada || concluida;
+            tarefaCard.className = `tarefa-card ${indisponivel ? 'encerrada' : 'disponivel'}`;
+            let textoBotao = concluida ? 'Concluído' : (encerrada ? 'Encerrado' : 'Jogar!');
+
             tarefaCard.innerHTML = `
-                <div class="tarefa-icone">${encerrada ? '⏳' : '✅'}</div>
+                <div class="tarefa-icone">${indisponivel ? '⏳' : '✅'}</div>
                 <div class="tarefa-info">
                     <span class="tarefa-titulo">${tarefa.titulo || 'Tarefa sem título'}</span>
                     <span class="tarefa-prazo">${encerrada ? 'Prazo encerrado' : dataInfo}</span>
                 </div>
-                <button class="btn-jogar-tarefa" data-tarefa-id="${tarefa._id}" ${encerrada ? 'disabled' : ''}>
-                    ${encerrada ? 'Encerrado' : 'Jogar!'}
+                <button class="btn-jogar-tarefa" data-tarefa='${JSON.stringify(tarefa)}' ${indisponivel ? 'disabled' : ''}>
+                    ${textoBotao}
                 </button>
             `;
             listaTarefasEl.appendChild(tarefaCard);
         });
+    };
 
-        // Adiciona um "ouvinte" de eventos à lista inteira
-        listaTarefasEl.addEventListener('click', (e) => {
-            if (e.target && e.target.classList.contains('btn-jogar-tarefa')) {
-                const tarefaId = e.target.getAttribute('data-tarefa-id');
-                const tarefaSelecionada = tarefas.find(t => t._id === tarefaId);
-
-                if (tarefaSelecionada) {
-                    // Guarda a tarefa selecionada para a página do jogo usar
-                    sessionStorage.setItem('tarefa_atual', JSON.stringify(tarefaSelecionada));
-                    // Redireciona para a nova página de jogo
-                    window.location.href = `/jogar/tarefa/${tarefaId}`;
-                }
+    // Função principal para buscar os dados atualizados do servidor
+    const buscarTarefasAtualizadas = async () => {
+        try {
+            const response = await fetch(`/api/game/salas/${salaId}/tarefas`);
+            if (!response.ok) {
+                throw new Error('Não foi possível buscar as tarefas.');
             }
-        });
-    }
-});
+            const tarefas = await response.json();
+            renderizarTarefas(tarefas);
+        } catch (error) {
+            console.error(error);
+            listaTarefasEl.innerHTML = `<div class="tarefa-card-vazio">Ocorreu um erro ao carregar as tarefas.</div>`;
+        }
+    };
 
+    // Event Listeners
+    btnSair.addEventListener('click', () => {
+        sessionStorage.clear();
+        window.location.href = '/jogar';
+    });
+
+    listaTarefasEl.addEventListener('click', (e) => {
+        if (e.target && e.target.classList.contains('btn-jogar-tarefa')) {
+            const tarefaDataString = e.target.getAttribute('data-tarefa');
+            const tarefaSelecionada = JSON.parse(tarefaDataString);
+
+            if (tarefaSelecionada) {
+                sessionStorage.setItem('tarefa_atual', JSON.stringify(tarefaSelecionada));
+                window.location.href = `/jogar/tarefa/${tarefaSelecionada._id}`;
+            }
+        }
+    });
+
+    // Inicia a busca dos dados ao carregar a página
+    buscarTarefasAtualizadas();
+});

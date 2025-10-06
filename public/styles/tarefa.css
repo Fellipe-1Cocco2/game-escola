@@ -299,7 +299,7 @@ body {
 .tab-pane { display: none; }
 .tab-pane.active { display: block; }
 
-/* Estilos para a lista de resultados */
+/* --- NOVOS ESTILOS PARA A LISTA DE RESULTADOS --- */
 .resultado-item {
     display: flex;
     justify-content: space-between;
@@ -310,8 +310,33 @@ body {
 .resultado-item:last-child {
     border-bottom: none;
 }
-.resultado-aluno-nome {
+.resultado-aluno-info {
     font-weight: 500;
+}
+.resultado-aluno-info small {
+    display: block;
+    color: var(--cor-texto-corpo);
+    font-size: 0.85rem;
+}
+.resultado-progresso {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.resultado-status {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    text-transform: uppercase;
+}
+.status-concluido {
+    background-color: var(--cor-sucesso);
+    color: white;
+}
+.status-em-andamento {
+    background-color: #fbbf24; /* Amarelo */
+    color: white;
 }
 .resultado-pontuacao {
     font-weight: 600;
@@ -320,4 +345,12 @@ body {
     padding: 0.3rem 0.8rem;
     border-radius: 50px;
     font-size: 0.9rem;
+}
+.status-nao-iniciado {
+    background-color: #9ca3af; /* Cinza */
+    color: white;
+}
+.status-nao-entregue {
+    background-color: var(--cor-erro); /* Vermelho */
+    color: white;
 }

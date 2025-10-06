@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnAbrirModalExcluirSala = document.getElementById('btn-abrir-modal-excluir-sala');
     const modalExcluirSala = document.getElementById('modal-excluir-sala');
     const btnConfirmarExclusaoSala = document.getElementById('btn-confirmar-exclusao-sala');
+
+    const btnAbrirModalVincular = document.getElementById('btn-abrir-modal-vincular');
+    const modalVincularAluno = document.getElementById('modal-vincular-aluno');
+    const formVincularAluno = document.getElementById('form-vincular-aluno');
     
     const toastNotification = document.getElementById('toast-notification');
     let toastTimeout;
@@ -37,6 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let professorLogado = null;
     let alunoParaExcluirId = null;
     const salaId = window.location.pathname.split('/').pop();
+
+    btnAbrirModalAluno.addEventListener('click', () => modalNovoAluno.style.display = 'flex');
+    btnAbrirModalVincular.addEventListener('click', () => modalVincularAluno.style.display = 'flex'); // Novo listener
 
     // --- LÓGICA DAS ABAS ---
     tabLinks.forEach(link => {
@@ -184,6 +191,15 @@ document.addEventListener('DOMContentLoaded', () => {
         await sendRequest(`/api/game/salas/${salaId}/alunos`, 'POST', { nome, RA }, 'Aluno cadastrado com sucesso!');
         formNovoAluno.reset();
         modalNovoAluno.style.display = 'none';
+    });
+    formVincularAluno.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const RA = document.getElementById('ra-aluno-vincular-form').value.trim();
+        if (!RA) return;
+        // Chama a nova rota PUT
+        await sendRequest(`/api/game/salas/${salaId}/alunos/vincular`, 'PUT', { RA }, 'Aluno vinculado com sucesso!');
+        formVincularAluno.reset();
+        modalVincularAluno.style.display = 'none';
     });
 
     listaAlunos.addEventListener('click', (e) => {

@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastNotification = getElement('toast-notification');
     const voltarSalaLink = getElement('voltar-sala-link');
     const btnFecharModal = document.querySelector('#modal-nova-pergunta .btn-fechar-modal');
+    const listaResultadosAlunos = getElement('lista-resultados-alunos');
 
     if (!tituloTarefaHeader || !listaPerguntasTarefa || !bancoPerguntasContainer || !btnAbrirModalPergunta || !modalNovaPergunta || !formNovaPergunta || !btnFecharModal) {
         return; // Impede a execução e o erro
@@ -47,23 +48,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let tarefaAtual = null;
 
-    const renderResultados = (resultados) => {
-        listaResultados.innerHTML = '';
+     const renderResultados = (resultados, totalPerguntas) => {
+        listaResultadosAlunos.innerHTML = '';
         if (!resultados || resultados.length === 0) {
-            listaResultados.innerHTML = '<div class="resultado-item">Nenhum aluno concluiu esta tarefa ainda.</div>';
+            listaResultadosAlunos.innerHTML = '<div class="pergunta-card">Nenhum aluno cadastrado nesta sala.</div>';
             return;
         }
-        // Ordena os resultados pela maior pontuação
-        resultados.sort((a, b) => b.pontuacao - a.pontuacao);
+        
+        // Ordena por pontuação (maior primeiro) e depois por nome
+        resultados.sort((a, b) => {
+            if (b.pontuacao !== a.pontuacao) {
+                return b.pontuacao - a.pontuacao;
+            }
+            return a.nome.localeCompare(b.nome);
+        });
 
         resultados.forEach(res => {
             const item = document.createElement('div');
             item.className = 'resultado-item';
+            
+            // Define a classe e o texto do status
+            const statusClasse = `status-${res.status.replace('_', '-')}`;
+            const statusTexto = res.status.replace('-', ' ');
+
             item.innerHTML = `
-                <span class="resultado-aluno-nome">${res.alunoNome}</span>
-                <span class="resultado-pontuacao">${res.pontuacao} / ${res.totalPerguntas}</span>
+                <div class="resultado-aluno-info">
+                    <span>${res.nome}</span>
+                    <small>Respostas: ${res.respostasDadas} de ${totalPerguntas}</small>
+                </div>
+                <div class="resultado-progresso">
+                    <span class="resultado-status ${statusClasse}">${statusTexto}</span>
+                    <span class="resultado-pontuacao">${res.pontuacao} pts</span>
+                </div>
             `;
-            listaResultados.appendChild(item);
+            listaResultadosAlunos.appendChild(item);
         });
     };
 
@@ -131,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tituloTarefaHeader.textContent = tarefaAtual.titulo;
             renderPerguntasDaTarefa(tarefaAtual.perguntas);
             renderBancoDePerguntas(bancoDePerguntas);
-            renderResultados(tarefaAtual.resultados);
+             renderResultados(tarefaAtual.resultadosCompletos, tarefaAtual.perguntas.length);
             
         } catch (error) {
             console.error("Erro ao carregar dados da tarefa:", error);

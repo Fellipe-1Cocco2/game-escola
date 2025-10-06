@@ -21,24 +21,39 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTask = null;
     let currentQuestionIndex = 0;
     let score = 0;
+    const alunoId = sessionStorage.getItem('aluno_id');
+    const salaId = sessionStorage.getItem('sala_id_atual'); 
+
     const correctSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'+Array(1e3).join('1211'));
     const incorrectSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'+Array(1e3).join('1122'));
 
 
     function startGame() {
         const taskString = sessionStorage.getItem('tarefa_atual');
-        if (!taskString) {
-            alert('Nenhuma tarefa selecionada!');
+        if (!taskString || !alunoId) {
+            alert('Nenhuma tarefa ou aluno selecionado!');
             window.location.href = '/tarefas';
             return;
         }
         currentTask = JSON.parse(taskString);
 
-        // --- VERIFICAÇÃO DE SEGURANÇA CRUCIAL ---
-        // Verifica se as perguntas existem e se os dados completos (com 'opcoes') foram carregados.
-        if (!currentTask.perguntas || currentTask.perguntas.length === 0 || !currentTask.perguntas[0].pergunta || !currentTask.perguntas[0].pergunta.opcoes) {
-            alert('Erro: Os dados das perguntas não foram carregados corretamente. O backend pode não estar a enviar os detalhes completos. Tente fazer o login de aluno novamente.');
-            window.location.href = '/tarefas'; // Volta para a lista de tarefas
+        // Verificação de segurança crucial
+        if (!currentTask.perguntas || currentTask.perguntas.length === 0 || !currentTask.perguntas[0].pergunta) {
+            alert('Erro: Esta tarefa não tem perguntas válidas. Avise o professor.');
+            window.location.href = '/tarefas'; 
+            return;
+        }
+        
+        const progresso = currentTask.progressos ? currentTask.progressos.find(p => p.alunoId === alunoId) : null;
+        if (progresso) {
+            score = progresso.pontuacao || 0;
+            currentQuestionIndex = progresso.respostas.length; 
+            scoreDisplayEl.textContent = score;
+        }
+        
+        if (progresso && progresso.status === 'concluido') {
+            alert('Você já concluiu esta tarefa!');
+            window.location.href = '/tarefas';
             return;
         }
 
@@ -49,33 +64,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayQuestion() {
+        if (currentQuestionIndex >= currentTask.perguntas.length) {
+            showResults();
+            return;
+        }
+
         answerButtons.forEach(btn => {
             btn.disabled = false;
             btn.classList.remove('correct', 'incorrect');
         });
 
+        // --- CORREÇÃO APLICADA AQUI ---
         const item = currentTask.perguntas[currentQuestionIndex];
-        const question = item.pergunta;
+        const question = item.pergunta; // Acessa o objeto da pergunta aninhado
 
         taskTitleEl.textContent = currentTask.titulo;
         questionCounterEl.textContent = `Pergunta ${currentQuestionIndex + 1} de ${currentTask.perguntas.length}`;
         questionTextEl.textContent = question.texto;
         
         answerButtons.forEach((button, index) => {
-            // A verificação em startGame() garante que question.opcoes existe aqui.
             button.querySelector('.answer-text').textContent = question.opcoes[index];
         });
     }
 
-    function handleAnswerClick(e) {
+    async function handleAnswerClick(e) {
         const selectedButton = e.currentTarget;
         const selectedIndex = parseInt(selectedButton.dataset.index);
+
+        // --- CORREÇÃO APLICADA AQUI ---
         const item = currentTask.perguntas[currentQuestionIndex];
-        const correctIndex = item.pergunta.opcaoCorreta;
+        const question = item.pergunta; // Acessa o objeto da pergunta aninhado
+        
+        const correctIndex = question.opcaoCorreta;
+        const acertou = selectedIndex === correctIndex;
 
         answerButtons.forEach(btn => btn.disabled = true);
 
-        if (selectedIndex === correctIndex) {
+        if (acertou) {
             selectedButton.classList.add('correct');
             score += 100;
             scoreDisplayEl.textContent = score;
@@ -85,6 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
             answerButtons[correctIndex].classList.add('correct');
             incorrectSound.play();
         }
+
+        await salvarProgressoNoBackend(question._id, selectedIndex, acertou, score);
 
         setTimeout(nextQuestion, 2000);
     }
@@ -113,49 +140,37 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             finalMessageEl.textContent = `Continue tentando! Você acertou ${correctAnswers} de ${totalQuestions}.`;
         }
-        salvarResultado(correctAnswers, totalQuestions);
     }
 
-    // NOVA FUNÇÃO para enviar o resultado para o servidor
-    async function salvarResultado(pontos, totalPerguntas) {
-        const alunoId = sessionStorage.getItem('aluno_id');
-        const alunoNome = sessionStorage.getItem('aluno_nome');
-        const tarefaId = currentTask._id;
-        
-        // O ID da sala está na URL da página anterior, mas não o guardamos.
-        // Vamos extraí-lo da tarefa, se possível, ou precisaríamos de uma pequena mudança.
-        // Por agora, vamos assumir que o ID da sala está disponível de alguma forma.
-        // A melhor forma é guardá-lo no sessionStorage também.
-        const salaId = currentTask.salaId; // Assumindo que o ID da sala virá com a tarefa
-        // Se `salaId` não vier na tarefa, teríamos que buscar de outra forma ou ajustar o `tarefas.js`
+    async function salvarProgressoNoBackend(perguntaId, respostaIndex, acertou, pontuacaoAtual) {
+        // O ID da sala está no `currentTask`, que foi populado no login do aluno
+        const salaIdDoAluno = currentTask.salaId; 
+        if (!salaIdDoAluno) {
+            // Se não encontrar o salaId na tarefa, tenta pegar da URL como um fallback
+            const pathParts = window.location.pathname.split('/');
+            const tarefaIdFromUrl = pathParts[3];
+            // Lógica para encontrar a qual sala a tarefa pertence seria necessária aqui
+            // Por ora, vamos assumir que o backend está enviando o salaId
+            console.error("ERRO CRÍTICO: salaId não encontrado. Verifique o populate no backend.");
+            return;
+        }
 
-        // CORREÇÃO NECESSÁRIA NO FUTURO: O ID da sala não está a ser passado.
-        // Para este exemplo, vamos assumir que a URL da API pode ser construída.
-        // A URL da API para salvar é: /api/game/salas/:salaId/tarefas/:tarefaId/resultados
-
-        const pathParts = window.location.pathname.split('/'); // Ex: /jogar/tarefa/ID_TAREFA
-        // Se a salaId não estiver aqui, precisaremos de a adicionar ao sessionStorage no `tarefas.js`
-        // Vamos assumir que o `tarefas.js` foi atualizado para guardar o `salaId`.
-        
         try {
-            // Este `salaId` deveria vir do sessionStorage também. Vamos ajustar o tarefas.js.
-            // Para já, vamos assumir que o temos.
-            // Vamos precisar de fazer uma pequena correção no `tarefas.js`
-            const salaIdFromSession = sessionStorage.getItem('sala_id_atual');
-
-            await fetch(`/api/game/salas/${salaIdFromSession}/tarefas/${tarefaId}/resultados`, {
+            const response = await fetch(`/api/game/salas/${salaIdDoAluno}/tarefas/${currentTask._id}/progresso`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     alunoId,
-                    alunoNome,
-                    pontuacao: pontos,
-                    totalPerguntas
+                    perguntaId,
+                    respostaIndex,
+                    acertou,
+                    pontuacaoAtual
                 })
             });
-            console.log("Resultado salvo!");
+            if (!response.ok) throw new Error('Falha ao salvar o progresso.');
+            console.log("Progresso salvo!");
         } catch (error) {
-            console.error("Erro ao salvar o resultado:", error);
+            console.error("Erro ao salvar o progresso:", error);
         }
     }
     
@@ -164,4 +179,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     startGame();
 });
-
