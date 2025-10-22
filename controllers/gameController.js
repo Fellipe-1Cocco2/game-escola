@@ -1,147 +1,46 @@
+const { GoogleGenerativeAI } = require('@google/generative-ai'); // Importação da IA
 const Sala = require('../models/Sala');
 const Professor = require('../models/Professor');
 const Pergunta = require('../models/Pergunta');
 const Aluno = require('../models/Aluno');
 
-// --- "LOGIN" DO ALUNO (PARTE CRÍTICA) ---
-const alunoLogin = async (req, res) => {
+// Configuração da IA (deve vir após as importações)
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+
+const removerPerguntaDaTarefa = async (req, res) => {
     try {
-        const { codigoSala, RA } = req.body;
-        if (!codigoSala || !RA) {
-            return res.status(400).json({ message: 'Código da Sala e RA são obrigatórios.' });
-        }
-        
-        const aluno = await Aluno.findOne({ RA });
-        if (!aluno) {
-            return res.status(401).json({ message: 'RA inválido ou não cadastrado no sistema.' });
-        }
-        
-        const sala = await Sala.findOne({ 
-            _id: codigoSala, 
-            alunos: aluno._id
-        }).populate({
-            path: 'tarefas',
-            populate: {
-                path: 'perguntas.pergunta', // Popula os detalhes das perguntas dentro das tarefas
-                model: 'Pergunta'
-            }
-        });
+        const { salaId, tarefaId, perguntaId } = req.params;
 
-        if (!sala) {
-            return res.status(404).json({ message: 'RA não encontrado nesta sala ou código da sala inválido.' });
-        }
-        
-        // --- INÍCIO DA CORREÇÃO ---
-        // Convertemos o documento do Mongoose para um objeto JavaScript simples para podermos modificá-lo
-        const salaObject = sala.toObject();
-
-        // Adicionamos a propriedade 'salaId' em cada tarefa antes de enviar para o frontend
-        salaObject.tarefas = salaObject.tarefas.map(tarefa => ({
-            ...tarefa,
-            salaId: sala._id 
-        }));
-        // --- FIM DA CORREÇÃO ---
-
-        res.status(200).json({
-            success: true,
-            aluno: { _id: aluno._id, nome: aluno.nome, RA: aluno.RA },
-            tarefas: salaObject.tarefas // Enviamos as tarefas modificadas
-        });
-
-    } catch (error) {
-        console.error('Erro no login do aluno:', error);
-        res.status(500).json({ message: 'Erro no servidor.' });
-    }
-};
-
-const salvarProgressoAluno = async (req, res) => {
-    try {
-        const { salaId, tarefaId } = req.params;
-        const { alunoId, perguntaId, respostaIndex, acertou, pontuacaoAtual } = req.body;
-
-        // 1. Encontra a sala
         const sala = await Sala.findById(salaId);
-        if (!sala) {
-            return res.status(404).json({ message: 'Sala não encontrada.' });
-        }
+        if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
 
-        // 2. Encontra a tarefa específica dentro da sala
         const tarefa = sala.tarefas.id(tarefaId);
-        if (!tarefa) {
-            return res.status(404).json({ message: 'Tarefa não encontrada.' });
-        }
+        if (!tarefa) return res.status(404).json({ message: 'Tarefa não encontrada.' });
 
-        // 3. Encontra o progresso para este aluno específico
-        let progresso = tarefa.progressos.find(p => p.alunoId.equals(alunoId));
+        // Remove a pergunta do array 'perguntas' da tarefa
+        // Usamos $pull para remover o objeto que contém a referência à pergunta
+        await Sala.updateOne(
+            { "_id": salaId, "tarefas._id": tarefaId },
+            { $pull: { "tarefas.$.perguntas": { pergunta: perguntaId } } }
+        );
 
-        // 4. Se não houver progresso, cria um novo
-        if (!progresso) {
-            tarefa.progressos.push({ 
-                alunoId: alunoId, 
-                status: 'em-andamento', 
-                respostas: [], 
-                pontuacao: 0 
-            });
-            // Pega a referência para o progresso recém-criado
-            progresso = tarefa.progressos[tarefa.progressos.length - 1];
-        }
+        // Busca a tarefa atualizada para retornar ao frontend
+        const tarefaAtualizada = await Sala.findById(salaId)
+            .populate({ path: 'tarefas.perguntas.pergunta', model: 'Pergunta' })
+            .then(s => s.tarefas.id(tarefaId));
 
-        // 5. Adiciona a nova resposta e atualiza a pontuação
-        progresso.respostas.push({ perguntaId, respostaIndex, acertou });
-        progresso.pontuacao = pontuacaoAtual;
-
-        // 6. Verifica se a tarefa foi concluída
-        // Compara o número de respostas com o número total de perguntas da tarefa
-        if (progresso.respostas.length >= tarefa.perguntas.length) {
-            progresso.status = 'concluido';
-            progresso.dataConclusao = new Date();
-        }
-
-        // 7. Salva o documento principal da sala com todas as alterações
-        await sala.save();
-
-        res.status(200).json({ message: 'Progresso salvo com sucesso!' });
+        res.status(200).json(tarefaAtualizada);
 
     } catch (error) {
-        console.error('Erro ao salvar progresso:', error);
-        res.status(500).json({ message: 'Erro no servidor ao salvar progresso.' });
-    }
-};
-
-const getTarefasDaSala = async (req, res) => {
-    try {
-        const { salaId } = req.params;
-        const sala = await Sala.findById(salaId)
-            .populate({
-                path: 'tarefas',
-                populate: {
-                    path: 'perguntas.pergunta',
-                    model: 'Pergunta'
-                }
-            });
-
-        if (!sala) {
-            return res.status(404).json({ message: 'Sala não encontrada.' });
-        }
-
-        // Adiciona o salaId a cada tarefa para uso no frontend
-        const tarefasComSalaId = sala.tarefas.map(tarefa => ({
-            ...tarefa.toObject(),
-            salaId: sala._id
-        }));
-        
-        res.status(200).json(tarefasComSalaId);
-
-    } catch (error) {
-        console.error('Erro ao buscar tarefas da sala:', error);
-        res.status(500).json({ message: 'Erro no servidor.' });
+        console.error('Erro ao remover pergunta da tarefa:', error);
+        res.status(500).json({ message: 'Erro no servidor ao remover pergunta.' });
     }
 };
 
 
-
-// --- OUTRAS FUNÇÕES (sem alterações) ---
-
+// --- FUNÇÕES DE SALA ---
 const criarSala = async (req, res) => {
     try {
         const { num_serie } = req.body;
@@ -184,7 +83,7 @@ const getSalaDetalhes = async (req, res) => {
         const sala = await Sala.findById(req.params.salaId)
             .populate('criador', 'name email')
             .populate('editoresConvidados', 'name email')
-            .populate('alunos'); // Adicionado o .populate() para buscar os dados dos alunos
+            .populate('alunos'); 
 
         if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
         res.status(200).json(sala);
@@ -212,6 +111,53 @@ const convidarEditor = async (req, res) => {
     }
 };
 
+// --- FUNÇÕES DE LOGIN DE ALUNO ---
+const alunoLogin = async (req, res) => {
+    try {
+        const { codigoSala, RA } = req.body;
+        if (!codigoSala || !RA) {
+            return res.status(400).json({ message: 'Código da Sala e RA são obrigatórios.' });
+        }
+        
+        const aluno = await Aluno.findOne({ RA });
+        if (!aluno) {
+            return res.status(401).json({ message: 'RA inválido ou não cadastrado no sistema.' });
+        }
+        
+        const sala = await Sala.findOne({ 
+            _id: codigoSala, 
+            alunos: aluno._id
+        }).populate({
+            path: 'tarefas',
+            populate: {
+                path: 'perguntas.pergunta',
+                model: 'Pergunta'
+            }
+        });
+
+        if (!sala) {
+            return res.status(404).json({ message: 'RA não encontrado nesta sala ou código da sala inválido.' });
+        }
+        
+        const salaObject = sala.toObject();
+        salaObject.tarefas = salaObject.tarefas.map(tarefa => ({
+            ...tarefa,
+            salaId: sala._id 
+        }));
+
+        res.status(200).json({
+            success: true,
+            aluno: { _id: aluno._id, nome: aluno.nome, RA: aluno.RA },
+            tarefas: salaObject.tarefas
+        });
+
+    } catch (error) {
+        console.error('Erro no login do aluno:', error);
+        res.status(500).json({ message: 'Erro no servidor.' });
+    }
+};
+
+// --- FUNÇÕES DE GERENCIAMENTO DE ALUNOS ---
 const cadastrarEAdicionarAluno = async (req, res) => {
     try {
         const { nome, RA } = req.body;
@@ -265,23 +211,19 @@ const atualizarAluno = async (req, res) => {
         const { salaId, alunoId } = req.params;
         const { nome, RA } = req.body;
 
-        // 1. Verificação de Permissão (continua importante)
         const sala = await Sala.findById(salaId);
         if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
         
         const podeEditar = sala.criador.equals(req.professor._id) || sala.editoresConvidados.some(id => id.equals(req.professor._id));
         if (!podeEditar) return res.status(403).json({ message: 'Você não tem permissão para editar nesta sala.' });
 
-        // 2. Lógica Corrigida: Atualiza o documento do Aluno diretamente
         const alunoAtualizado = await Aluno.findByIdAndUpdate(alunoId, { nome, RA }, { new: true, runValidators: true });
 
         if (!alunoAtualizado) {
             return res.status(404).json({ message: 'Aluno não encontrado.' });
         }
         
-        // 3. Retorna o aluno com os novos dados
         res.status(200).json(alunoAtualizado);
-
     } catch (error) {
         console.error('Erro ao atualizar aluno:', error);
         res.status(500).json({ message: 'Erro no servidor ao atualizar aluno.' });
@@ -291,11 +233,12 @@ const atualizarAluno = async (req, res) => {
 const excluirAluno = async (req, res) => {
     try {
         const { salaId, alunoId } = req.params;
+        const sala = await Sala.findById(salaId);
+        if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
+        const podeEditar = sala.criador.equals(req.professor._id) || sala.editoresConvidados.some(id => id.equals(req.professor._id));
+        if (!podeEditar) return res.status(403).json({ message: 'Você não tem permissão para excluir.' });
         
-        // Apenas remove o ID do aluno do array da sala
-        await Sala.findByIdAndUpdate(salaId, {
-            $pull: { alunos: alunoId }
-        });
+        await Sala.findByIdAndUpdate(salaId, { $pull: { alunos: alunoId } });
 
         res.status(200).json({ message: 'Aluno desvinculado da sala com sucesso.' });
     } catch (error) {
@@ -304,6 +247,7 @@ const excluirAluno = async (req, res) => {
     }
 };
 
+// --- FUNÇÕES DE TAREFA E PROGRESSO ---
 const adicionarTarefa = async (req, res) => {
     try {
         const { titulo, dataFechamento, horaFechamento } = req.body;
@@ -324,15 +268,13 @@ const getTarefaDetalhes = async (req, res) => {
     try {
         const { salaId, tarefaId } = req.params;
 
-        // 1. Busca a sala e popula a lista de TODOS os alunos matriculados nela
         const sala = await Sala.findById(salaId).populate('alunos', 'nome RA');
         if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
 
-        // 2. Encontra a tarefa específica dentro da sala, populando os dados de progresso
         const tarefa = await Sala.findOne({ "_id": salaId, "tarefas._id": tarefaId })
             .populate({
                 path: 'tarefas',
-                match: { _id: tarefaId }, // Garante que estamos pegando a tarefa certa
+                match: { _id: tarefaId }, 
                 populate: [
                     { path: 'perguntas.pergunta', model: 'Pergunta' },
                     { path: 'progressos.alunoId', model: 'Aluno', select: 'nome RA' }
@@ -342,7 +284,6 @@ const getTarefaDetalhes = async (req, res) => {
 
         if (!tarefa) return res.status(404).json({ message: 'Tarefa não encontrada.' });
 
-        // 3. CRIA A LISTA DE RESULTADOS COMPLETA
         const agora = new Date();
         const tarefaEncerrada = tarefa.dataFechamento && agora > new Date(tarefa.dataFechamento);
 
@@ -350,22 +291,15 @@ const getTarefaDetalhes = async (req, res) => {
             const progresso = tarefa.progressos.find(p => p.alunoId && p.alunoId.equals(aluno._id));
 
             if (progresso) {
-                // Se o aluno tem progresso, retorna os dados
                 return {
-                    alunoId: aluno._id,
-                    nome: aluno.nome,
-                    RA: aluno.RA,
+                    alunoId: aluno._id, nome: aluno.nome, RA: aluno.RA,
                     status: progresso.status,
                     pontuacao: progresso.pontuacao,
                     respostasDadas: progresso.respostas.length
                 };
             } else {
-                // Se o aluno não tem progresso
                 return {
-                    alunoId: aluno._id,
-                    nome: aluno.nome,
-                    RA: aluno.RA,
-                    // Define o status com base na data de encerramento da tarefa
+                    alunoId: aluno._id, nome: aluno.nome, RA: aluno.RA,
                     status: tarefaEncerrada ? 'nao-entregue' : 'nao-iniciado',
                     pontuacao: 0,
                     respostasDadas: 0
@@ -373,7 +307,6 @@ const getTarefaDetalhes = async (req, res) => {
             }
         });
 
-        // 4. Monta o objeto final para enviar ao frontend
         const tarefaFinal = tarefa.toObject();
         tarefaFinal.resultadosCompletos = resultadosCompletos;
 
@@ -385,7 +318,76 @@ const getTarefaDetalhes = async (req, res) => {
     }
 };
 
+const getTarefasDaSala = async (req, res) => {
+    try {
+        const { salaId } = req.params;
+        const sala = await Sala.findById(salaId)
+            .populate({
+                path: 'tarefas',
+                populate: {
+                    path: 'perguntas.pergunta',
+                    model: 'Pergunta'
+                }
+            });
 
+        if (!sala) {
+            return res.status(404).json({ message: 'Sala não encontrada.' });
+        }
+
+        const tarefasComSalaId = sala.tarefas.map(tarefa => ({
+            ...tarefa.toObject(),
+            salaId: sala._id
+        }));
+        
+        res.status(200).json(tarefasComSalaId);
+
+    } catch (error) {
+        console.error('Erro ao buscar tarefas da sala:', error);
+        res.status(500).json({ message: 'Erro no servidor.' });
+    }
+};
+
+const salvarProgressoAluno = async (req, res) => {
+    try {
+        const { salaId, tarefaId } = req.params;
+        const { alunoId, perguntaId, respostaIndex, acertou, pontuacaoAtual } = req.body;
+
+        const sala = await Sala.findById(salaId);
+        if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
+
+        const tarefa = sala.tarefas.id(tarefaId);
+        if (!tarefa) return res.status(404).json({ message: 'Tarefa não encontrada.' });
+
+        let progresso = tarefa.progressos.find(p => p.alunoId.equals(alunoId));
+
+        if (!progresso) {
+            tarefa.progressos.push({ 
+                alunoId: alunoId, 
+                status: 'em-andamento', 
+                respostas: [], 
+                pontuacao: 0 
+            });
+            progresso = tarefa.progressos[tarefa.progressos.length - 1];
+        }
+
+        progresso.respostas.push({ perguntaId, respostaIndex, acertou });
+        progresso.pontuacao = pontuacaoAtual;
+
+        if (progresso.respostas.length >= tarefa.perguntas.length) {
+            progresso.status = 'concluido';
+            progresso.dataConclusao = new Date();
+        }
+
+        await sala.save();
+        res.status(200).json({ message: 'Progresso salvo com sucesso!' });
+
+    } catch (error) {
+        console.error('Erro ao salvar progresso:', error);
+        res.status(500).json({ message: 'Erro no servidor ao salvar progresso.' });
+    }
+};
+
+// --- FUNÇÕES DE PERGUNTAS ---
 const criarPerguntaParaTarefa = async (req, res) => {
     try {
         const { salaId, tarefaId } = req.params;
@@ -395,12 +397,8 @@ const criarPerguntaParaTarefa = async (req, res) => {
         if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
         const tarefa = sala.tarefas.id(tarefaId);
         if (!tarefa) return res.status(404).json({ message: 'Tarefa não encontrada.' });
-
-        // A linha abaixo está corrigida para enviar o objeto
         tarefa.perguntas.push({ pergunta: novaPergunta._id });
         await sala.save();
-
-        // A linha abaixo usa o populate correto
         const tarefaAtualizada = await Sala.findById(salaId).populate('tarefas.perguntas.pergunta');
         res.status(201).json(tarefaAtualizada.tarefas.id(tarefaId));
     } catch (error) {
@@ -429,12 +427,8 @@ const adicionarPerguntaDoBanco = async (req, res) => {
         if (!tarefa) return res.status(404).json({ message: 'Tarefa não encontrada.' });
         const perguntaJaExiste = tarefa.perguntas.some(p => p.pergunta.equals(perguntaId));
         if(perguntaJaExiste) return res.status(409).json({ message: 'Esta pergunta já foi adicionada.' });
-
-        // A linha abaixo está corrigida para enviar o objeto
         tarefa.perguntas.push({ pergunta: perguntaId });
         await sala.save();
-        
-        // A linha abaixo usa o populate correto
         const tarefaAtualizada = await Sala.findById(salaId).populate('tarefas.perguntas.pergunta');
         res.status(200).json(tarefaAtualizada.tarefas.id(tarefaId));
     } catch (error) {
@@ -443,40 +437,107 @@ const adicionarPerguntaDoBanco = async (req, res) => {
     }
 };
 
-const salvarResultadoTarefa = async (req, res) => {
+// --- FUNÇÃO DE IA (CORRIGIDA) ---
+
+const masterPrompt = `
+Você é um assistente de criação de quizzes para professores. Sua única função é preencher 5 campos obrigatórios: "titulo", "dataFechamento", "horaFechamento", "numPerguntas" e "topico".
+
+O professor iniciará a conversa. Analise a mensagem dele.
+
+1.  **Regra de Ouro:** O professor pode responder às suas perguntas com frases completas (ex: "O tópico é Sistema Solar") ou APENAS com o dado (ex: "Sistema Solar" ou "22:00"). Você DEVE aceitar respostas diretas como "22:00" como a "horaFechamento" e "2025-10-30" como a "dataFechamento" se for isso que você perguntou.
+
+2.  **Fluxo de Conversa:** Se algum dos 5 campos estiver faltando, faça UMA ÚNICA pergunta para obter o próximo campo que falta. Não faça várias perguntas de uma vez.
+
+3.  **Formatos:** O formato da data deve ser YYYY-MM-DD. O formato da hora deve ser HH:MM.
+
+4.  **Finalização:** Quando você tiver todos os 5 campos, pergunte ao professor sobre o nível de dificuldade ou estilo das perguntas (ex: "Entendido. Como devem ser as perguntas? Fáceis, difíceis, de múltipla escolha?").
+
+5.  **Geração:** Após o professor responder sobre o estilo, gere o quiz.
+
+6.  **Formato de Resposta (JSON):** Sempre responda em um formato JSON.
+
+Formato de resposta se os dados estiverem incompletos:
+{ "status": "incompleto", "proximaPergunta": "Sua pergunta para o professor aqui." }
+
+Formato de resposta quando a IA estiver pronta para gerar as perguntas:
+{
+  "status": "completo",
+  "tarefa": {
+    "titulo": "...",
+    "dataFechamento": "YYYY-MM-DD",
+    "horaFechamento": "HH:MM",
+    "topico": "...",
+    "perguntas": [
+      { "texto": "Pergunta 1?", "opcoes": ["A", "B", "C", "D"], "opcaoCorreta": 0 },
+      { "texto": "Pergunta 2?", "opcoes": ["A", "B", "C", "D"], "opcaoCorreta": 3 }
+    ]
+  }
+}
+`;
+
+const gerarTarefaComIA = async (req, res) => {
     try {
-        const { salaId, tarefaId } = req.params;
-        const { alunoId, alunoNome, pontuacao, totalPerguntas } = req.body;
+        const { salaId } = req.params;
+        const { historicoChat } = req.body; 
 
-        const sala = await Sala.findById(salaId);
-        if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
+        const historyForAI = [
+            { role: "user", parts: [{ text: masterPrompt }] },
+            ...historicoChat.map(msg => ({
+                role: msg.role,
+                parts: [{ text: msg.text }]
+            }))
+        ];
 
-        const tarefa = sala.tarefas.id(tarefaId);
-        if (!tarefa) return res.status(404).json({ message: 'Tarefa não encontrada.' });
+        const chat = model.startChat({ history: historyForAI });
+        const ultimaMensagemTexto = historicoChat[historicoChat.length - 1].text;
+        const result = await chat.sendMessage(ultimaMensagemTexto);
+        const responseText = result.response.text();
         
-        // Verifica se já existe um resultado para este aluno
-        const resultadoExistenteIndex = tarefa.resultados.findIndex(r => r.alunoId.equals(alunoId));
+        let aiResponse;
+        
+        // --- INÍCIO DA CORREÇÃO ---
+        try {
+            // Limpa a string da IA, removendo o markdown
+            const cleanedText = responseText
+                .replace("```json", "") // Remove o prefixo
+                .replace("```", "")     // Remove o sufixo
+                .trim();                // Remove espaços em branco
 
-        const novoResultado = { alunoId, alunoNome, pontuacao, totalPerguntas, dataConclusao: new Date() };
+            aiResponse = JSON.parse(cleanedText); // Tenta o parse no texto limpo
+        } catch (e) {
+            console.error("Erro ao parsear JSON da IA (texto original):", responseText);
+            return res.status(500).json({ message: "A IA retornou um formato de JSON inválido." });
+        }
+        // --- FIM DA CORREÇÃO ---
 
-        if (resultadoExistenteIndex > -1) {
-            // Se já existe, atualiza o resultado (ex: se o aluno jogar de novo)
-            tarefa.resultados[resultadoExistenteIndex] = novoResultado;
-        } else {
-            // Se não existe, adiciona um novo resultado
-            tarefa.resultados.push(novoResultado);
+        if (aiResponse.status === 'completo') {
+            const { titulo, dataFechamento, horaFechamento, perguntas } = aiResponse.tarefa;
+
+            const perguntasCriadas = await Pergunta.insertMany(perguntas);
+            const perguntasIds = perguntasCriadas.map(p => ({ pergunta: p._id }));
+
+            const sala = await Sala.findById(salaId);
+            if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
+
+            sala.tarefas.push({
+                titulo,
+                dataFechamento,
+                horaFechamento,
+                perguntas: perguntasIds
+            });
+            await sala.save();
         }
 
-        await sala.save();
-        res.status(200).json({ message: 'Resultado salvo com sucesso!' });
+        res.status(200).json(aiResponse);
 
     } catch (error) {
-        console.error('Erro ao salvar resultado:', error);
-        res.status(500).json({ message: 'Erro no servidor ao salvar resultado.' });
+        console.error('Erro no controlador de IA:', error);
+        res.status(500).json({ message: 'Erro interno no servidor de IA.' });
     }
 };
 
 
+// --- EXPORTAÇÕES ---
 module.exports = {
     criarSala, excluirSala, getTodasAsSalas, getSalaDetalhes, convidarEditor,
     alunoLogin,
@@ -486,5 +547,6 @@ module.exports = {
     excluirAluno,
     adicionarTarefa, getTarefaDetalhes, getTarefasDaSala,
     criarPerguntaParaTarefa, getBancoDePerguntas, adicionarPerguntaDoBanco,
-    salvarProgressoAluno
+    salvarProgressoAluno,
+    gerarTarefaComIA, removerPerguntaDaTarefa
 };

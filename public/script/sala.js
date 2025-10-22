@@ -295,5 +295,83 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.error("Erro crítico: Elementos essenciais não encontrados. Verifique os IDs no HTML.");
     }
+    // --- LÓGICA DO CHAT DE IA ---
+    const btnAbrirChatIA = document.getElementById('btn-abrir-chat-ia');
+    const modalChatIA = document.getElementById('modal-chat-ia');
+    const btnFecharChatIA = document.querySelector('#modal-chat-ia .btn-fechar-modal');
+    const chatCorpo = document.getElementById('chat-ia-corpo');
+    const formChatIA = document.getElementById('form-chat-ia');
+    const inputChatIA = document.getElementById('input-chat-ia');
+    const btnEnviarChatIA = document.getElementById('btn-enviar-chat-ia');
+    
+    let historicoChatIA = []; // Armazena o histórico da conversa
+
+    // Função para adicionar mensagem na tela
+    const adicionarMensagemAoChat = (remetente, texto) => {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `chat-msg ${remetente}`;
+        msgDiv.textContent = texto;
+        chatCorpo.appendChild(msgDiv);
+        chatCorpo.scrollTop = chatCorpo.scrollHeight; // Rola para o final
+    };
+
+    // Abrir o modal do chat
+    btnAbrirChatIA.addEventListener('click', () => {
+        modalChatIA.style.display = 'flex';
+        // Inicia a conversa se for a primeira vez
+        if (historicoChatIA.length === 0) {
+            const msgInicial = "Olá! Vamos criar um quiz. Qual é o tópico?";
+            adicionarMensagemAoChat('model', msgInicial);
+            historicoChatIA.push({ role: 'model', text: `{\n  \"status\": \"incompleto\",\n  \"proximaPergunta\": \"${msgInicial}\"\n}` });
+        }
+    });
+
+    // Fechar o modal
+    btnFecharChatIA.addEventListener('click', () => modalChatIA.style.display = 'none');
+
+    // Enviar mensagem
+    formChatIA.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const textoUsuario = inputChatIA.value.trim();
+        if (!textoUsuario) return;
+
+        adicionarMensagemAoChat('user', textoUsuario);
+        historicoChatIA.push({ role: 'user', text: textoUsuario });
+        inputChatIA.value = '';
+        btnEnviarChatIA.disabled = true;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`/api/game/salas/${salaId}/ai/gerar-tarefa`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ historicoChat: historicoChatIA })
+            });
+
+            const aiResponse = await response.json();
+            
+            if (!response.ok) throw new Error(aiResponse.message || 'Erro na IA');
+
+            // Adiciona a resposta da IA ao histórico e à tela
+            historicoChatIA.push({ role: 'model', text: JSON.stringify(aiResponse) });
+
+            if (aiResponse.status === 'incompleto') {
+                adicionarMensagemAoChat('model', aiResponse.proximaPergunta);
+            } else if (aiResponse.status === 'completo') {
+                adicionarMensagemAoChat('model', 'Tarefa criada com sucesso! As perguntas já foram geradas e salvas.');
+                fetchSalaData(); // Atualiza a lista de tarefas na página
+                setTimeout(() => {
+                    modalChatIA.style.display = 'none';
+                    historicoChatIA = []; // Reseta o chat
+                }, 2000);
+            }
+        } catch (error) {
+            adicionarMensagemAoChat('model', `Erro: ${error.message}`);
+        }
+        btnEnviarChatIA.disabled = false;
+    });
 });
 

@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const voltarSalaLink = getElement('voltar-sala-link');
     const btnFecharModal = document.querySelector('#modal-nova-pergunta .btn-fechar-modal');
     const listaResultadosAlunos = getElement('lista-resultados-alunos');
+    const inputBuscaBanco = getElement('input-busca-banco');
 
     if (!tituloTarefaHeader || !listaPerguntasTarefa || !bancoPerguntasContainer || !btnAbrirModalPergunta || !modalNovaPergunta || !formNovaPergunta || !btnFecharModal) {
         return; // Impede a execução e o erro
@@ -27,7 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tabLinks = document.querySelectorAll('.tab-link');
     const tabPanes = document.querySelectorAll('.tab-pane');
-
+    
+    let bancoDePerguntasCompleto = [];
 
     tabLinks.forEach(link => {
         link.addEventListener('click', () => {
@@ -93,7 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         perguntas.forEach(item => {
-            if (!item.pergunta) return; // Segurança extra
+            if (!item || !item.pergunta) { // Verificação extra
+                 console.warn('Item de pergunta inválido:', item);
+                 return;
+            }
             const card = document.createElement('div');
             card.className = 'pergunta-card';
             
@@ -104,18 +109,33 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             opcoesHtml += '</ol>';
 
+            // Adiciona o botão de remover
+            const btnRemover = document.createElement('button');
+            btnRemover.className = 'btn-remover-pergunta';
+            btnRemover.textContent = 'Remover';
+            btnRemover.onclick = () => handleRemoverPergunta(item.pergunta._id);
+
             card.innerHTML = `<strong>${item.pergunta.texto}</strong>${opcoesHtml}`;
+            card.appendChild(btnRemover); // Adiciona o botão ao card
             listaPerguntasTarefa.appendChild(card);
         });
     };
     
-    const renderBancoDePerguntas = (perguntas) => {
+   const renderBancoDePerguntas = (termoBusca = '') => {
         bancoPerguntasContainer.innerHTML = '';
-        if (!perguntas || perguntas.length === 0) {
-            bancoPerguntasContainer.innerHTML = '<p>Nenhuma pergunta no banco.</p>';
+        const termoLower = termoBusca.toLowerCase();
+
+        // Filtra as perguntas com base no termo de busca
+        const perguntasFiltradas = bancoDePerguntasCompleto.filter(pergunta =>
+            pergunta.texto.toLowerCase().includes(termoLower)
+        );
+
+        if (perguntasFiltradas.length === 0) {
+            bancoPerguntasContainer.innerHTML = `<p>${termoBusca ? 'Nenhuma pergunta encontrada.' : 'Nenhuma pergunta no banco.'}</p>`;
             return;
         }
-        perguntas.forEach(pergunta => {
+
+        perguntasFiltradas.forEach(pergunta => {
             const item = document.createElement('div');
             item.className = 'banco-item';
             item.innerHTML = `<p>${pergunta.texto}</p>`;
@@ -144,11 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!tarefaRes.ok || !bancoRes.ok) throw new Error('Falha ao buscar dados.');
             
             tarefaAtual = await tarefaRes.json();
-            const bancoDePerguntas = await bancoRes.json();
+            bancoDePerguntasCompleto = await bancoRes.json();
             
             tituloTarefaHeader.textContent = tarefaAtual.titulo;
             renderPerguntasDaTarefa(tarefaAtual.perguntas);
-            renderBancoDePerguntas(bancoDePerguntas);
+            renderBancoDePerguntas();
              renderResultados(tarefaAtual.resultadosCompletos, tarefaAtual.perguntas.length);
             
         } catch (error) {
@@ -185,12 +205,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleAdicionarDoBanco = async (perguntaId) => {
         await sendRequest(`/api/game/salas/${salaId}/tarefas/${tarefaId}/banco-perguntas`, 'POST', { perguntaId }, 'Pergunta adicionada do banco!');
     };
-
+    const handleRemoverPergunta = async (perguntaId) => {
+            if (!confirm('Tem certeza que deseja remover esta pergunta da tarefa?')) {
+                return;
+            }
+            await sendRequest(`/api/game/salas/${salaId}/tarefas/${tarefaId}/perguntas/${perguntaId}`, 'DELETE', null, 'Pergunta removida com sucesso!');
+        };
     // --- EVENT LISTENERS ---
     btnAbrirModalPergunta.addEventListener('click', () => modalNovaPergunta.style.display = 'flex');
     btnFecharModal.addEventListener('click', () => modalNovaPergunta.style.display = 'none');
     formNovaPergunta.addEventListener('submit', handleCriarNovaPergunta);
-
+    inputBuscaBanco.addEventListener('input', (e) => {
+        renderBancoDePerguntas(e.target.value);
+    });
     // --- FUNÇÃO AUXILIAR E INICIALIZAÇÃO ---
     const sendRequest = async (url, method, body, successMsg) => {
         const token = localStorage.getItem('token');
@@ -202,15 +229,65 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             const response = await fetch(url, options);
             const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Ocorreu um erro.');
+
+            // --- INÍCIO DA MODIFICAÇÃO ---
+            if (!response.ok) {
+                // Verifica se o erro é um 409 (Conflito)
+                if (response.status === 409) {
+                    // Lança um erro específico para o toast de aviso
+                    throw { status: 409, message: data.message || 'Ação bloqueada (conflito).' };
+                } else {
+                    // Lança um erro genérico para outros problemas
+                    throw new Error(data.message || 'Ocorreu um erro.');
+                }
+            }
+            // --- FIM DA MODIFICAÇÃO ---
+
             showToast(successMsg, 'success');
-            fetchData(); // Recarrega todos os dados
+
+            if (data && data._id && data.perguntas !== undefined) {
+                tarefaAtual = data;
+                renderPerguntasDaTarefa(tarefaAtual.perguntas);
+                renderResultados(tarefaAtual.resultadosCompletos, tarefaAtual.perguntas.length);
+            } else {
+                fetchData();
+            }
+
         } catch (error) {
-            showToast(error.message, 'error');
+            // --- INÍCIO DA MODIFICAÇÃO ---
+            // Verifica se o erro tem o status 409 e usa o tipo 'info' (azul)
+            console.error('Erro detalhado capturado:', error);
+            if (error && error.status === 409) {
+                console.log('Detectado erro 409, mostrando toast info.');
+                showToast(error.message, 'info');
+            } else {
+                console.log('Erro não é 409, mostrando toast error.');
+                showToast(error.message || 'Ocorreu um erro desconhecido.', 'error');
+            }
+            // --- FIM DA MODIFICAÇÃO ---
+
         }
     };
 
-    const showToast = (message, type) => { /* ... código existente ... */ };
+    const showToast = (message, type = 'success') => { // Padrão sucesso
+        clearTimeout(toastTimeout);
+        toastNotification.textContent = message;
+        toastNotification.className = 'toast-notification'; // Reseta classes
+        
+        // Adiciona a classe correta (success, error, ou info)
+        if (type === 'success') {
+            toastNotification.classList.add('success');
+        } else if (type === 'info') {
+            toastNotification.classList.add('info'); // Classe para avisos (azul)
+        } else {
+            toastNotification.classList.add('error');
+        }
+        
+        toastNotification.classList.add('show');
+        toastTimeout = setTimeout(() => {
+            toastNotification.classList.remove('show');
+        }, 4000); // Aumentado para 4 segundos
+    };
     
     fetchData(); // Busca os dados iniciais ao carregar a página
 });

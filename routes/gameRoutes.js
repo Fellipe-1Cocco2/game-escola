@@ -9,7 +9,7 @@ const {
     criarPerguntaParaTarefa, getBancoDePerguntas, adicionarPerguntaDoBanco,
     salvarProgressoAluno,
     cadastrarEAdicionarAluno, // Função de cadastro
-    vincularAlunoExistente // Função de vínculo
+    vincularAlunoExistente, gerarTarefaComIA, removerPerguntaDaTarefa // Função de vínculo
 } = require('../controllers/gameController');
 
 // --- ROTAS DE SALA ---
@@ -32,8 +32,11 @@ router.get('/salas/:salaId/tarefas/:tarefaId', protect, getTarefaDetalhes);
 router.get('/perguntas', protect, getBancoDePerguntas);
 router.post('/salas/:salaId/tarefas/:tarefaId/perguntas', protect, criarPerguntaParaTarefa);
 router.post('/salas/:salaId/tarefas/:tarefaId/banco-perguntas', protect, adicionarPerguntaDoBanco);
-
+router.delete('/salas/:salaId/tarefas/:tarefaId/perguntas/:perguntaId', protect, removerPerguntaDaTarefa);
 // --- ROTA DE PROGRESSO ---
 router.post('/salas/:salaId/tarefas/:tarefaId/progresso', salvarProgressoAluno);
+
+// Ela receberá o histórico da conversa e o ID da sala
+router.post('/salas/:salaId/ai/gerar-tarefa', protect, gerarTarefaComIA);
 
 module.exports = router;

@@ -158,6 +158,27 @@
         </div>
     </div>
     
+    <div id="modal-chat-ia" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-chat"> <div class="modal-header">
+                <h3>Assistente de IA</h3>
+                <span class="btn-fechar-modal">&times;</span>
+            </div>
+            
+            <div id="chat-ia-corpo" class="chat-corpo"></div>
+            <form id="form-chat-ia" class="chat-input-form">
+                <input type="text" id="input-chat-ia" placeholder="Digite sua mensagem..." autocomplete="off">
+                <button type="submit" id="btn-enviar-chat-ia" class="btn-primary">Enviar</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="fab-container">
+        <span class="fab-tooltip">Crie tarefas com IA</span>
+        <button id="btn-abrir-chat-ia" class="fab-ia">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 4.2-4.2 1.9 4.2 1.9L12 15l1.9-4.2 4.2-1.9-4.2-1.9L12 3Z"/><path d="M5 21v-4"/><path d="m19 21v-4"/><path d="m5 17h14"/></svg>
+        </button>
+    </div>
+
     <div id="toast-notification" class="toast-notification"></div>
     <script src="../script/sala.js"></script>
 </body>

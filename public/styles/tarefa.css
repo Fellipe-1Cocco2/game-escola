@@ -354,3 +354,31 @@ body {
     background-color: var(--cor-erro); /* Vermelho */
     color: white;
 }
+
+.btn-remover-pergunta {
+    background-color: var(--cor-erro);
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: 1rem; /* Espaço à esquerda */
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+.pergunta-card:hover .btn-remover-pergunta {
+    opacity: 1; /* Mostra o botão ao passar o mouse no card */
+}
+
+/* Estilo para o container da busca */
+.search-container {
+    margin-bottom: 1rem;
+}
+#input-busca-banco {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+}

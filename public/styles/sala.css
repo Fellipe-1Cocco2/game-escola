@@ -202,5 +202,170 @@ body {
 /* (NOVOS ESTILOS) para os botões de ação do aluno */
 .lista-item-actions { display: flex; gap: 0.75rem; }
 
+/* Ajusta o tamanho máximo do modal do chat */
+.modal-chat {
+    max-width: 500px;
+    width: 90%; /* Garante que caiba em telas menores */
+}
+
+/* Estilo do cabeçalho do modal */
+.modal-chat .modal-header {
+    display: flex; /* Garante alinhamento */
+    justify-content: space-between; /* Título à esquerda, X à direita */
+    align-items: center; /* Alinha verticalmente */
+    border-bottom: 1px solid var(--cor-borda);
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+.modal-chat .modal-header h3 {
+    margin: 0; /* Remove margem padrão do h3 */
+    font-size: 1.25rem; /* Ajusta tamanho do título */
+}
+
+/* Estilo para o botão de fechar (X) */
+.modal-chat .btn-fechar-modal {
+    /* Remove position absolute para fluxo normal */
+    font-size: 2rem; /* Tamanho ajustado */
+    color: #9ca3af;
+    cursor: pointer;
+    line-height: 1;
+    background: none;
+    border: none;
+    padding: 0 0.5rem; /* Adiciona um pequeno padding */
+    transition: color 0.2s;
+}
+.modal-chat .btn-fechar-modal:hover {
+    color: var(--cor-texto-titulo);
+}
+
+/* Estilo da área de mensagens */
+.chat-corpo {
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: var(--cor-fundo-pagina);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem; /* Adiciona espaço antes do input */
+}
+.chat-msg {
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    max-width: 80%;
+    line-height: 1.5;
+}
+.chat-msg.user {
+    background-color: var(--cor-principal-clara);
+    color: white;
+    align-self: flex-end;
+}
+.chat-msg.model {
+    background-color: var(--cor-fundo-card);
+    border: 1px solid var(--cor-borda);
+    align-self: flex-start;
+}
+
+/* Estilo do formulário de input */
+.chat-input-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center; /* Alinha verticalmente */
+}
+
+/* Estilo do campo de texto */
+#input-chat-ia {
+    flex-grow: 1; /* Ocupa espaço disponível */
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    height: 3rem; /* Altura padrão */
+    line-height: normal; /* Reseta line-height */
+}
+#input-chat-ia:focus { /* Adiciona efeito de foco */
+    outline: none;
+    border-color: var(--cor-principal);
+    box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.2);
+}
+
+
+/* Estilo do botão Enviar */
+.chat-input-form .btn-primary {
+    /* Estilos base dos botões primários */
+    background-color: var(--cor-principal);
+    color: white;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.6rem 1.2rem;
+    height: 3rem; /* Mesma altura do input */
+    line-height: 1.5;
+    /* Ajustes específicos */
+    flex-shrink: 0; /* Não encolher */
+    width: auto; /* Largura automática */
+    transition: background-color 0.2s; /* Efeito hover */
+}
+.chat-input-form .btn-primary:hover {
+    background-color: var(--cor-principal-clara);
+}
+/* Container para o botão e o tooltip */
+.fab-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 999;
+}
+
+/* Estilo do botão (você já tem, mas o 'position' foi movido para o container) */
+.fab-ia {
+    width: 60px;
+    height: 60px;
+    background-color: var(--cor-principal);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s;
+}
+.fab-ia:hover {
+    transform: scale(1.1);
+}
+
+/* Estilo do Tooltip (a caixinha de texto) */
+.fab-tooltip {
+    position: absolute;
+    bottom: 50%; /* Centraliza verticalmente com o botão */
+    transform: translateY(50%);
+    right: 75px; /* Posição à esquerda do botão */
+    background-color: var(--cor-texto-titulo);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap; /* Impede que o texto quebre a linha */
+    
+    /* Lógica para esconder/mostrar */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Mostra o tooltip quando o container (ou o botão) estiver em hover */
+.fab-container:hover .fab-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+
 @media (max-width: 768px) { #tab-colaboradores.active { grid-template-columns: 1fr; } }
 
