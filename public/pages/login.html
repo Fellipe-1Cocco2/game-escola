@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sabidin - Entrar no Jogo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../styles/login.css">
+    
+    <link rel="stylesheet" href="/styles/login.css">
 </head>
 <body>
     <div class="main-container">
 
-        <!-- Main Content -->
         <main class="content">
             
             <div class="card-container">
@@ -21,14 +21,11 @@
                 </div>
                 <div class="card">
                     <div class="card-content">
-                        <!-- ATUALIZADO: Adicionado id="login-form" -->
                         <form id="login-form" class="form-container">
                             <h1 class="titulo">Faça seu login</h1>
                             <input type="text" placeholder="E-mail" id="email" class="email-input">
                             <input type="password" placeholder="Senha" id="senha" class="senha-input">
-                            <!-- ATUALIZADO: Adicionado type="submit" para garantir a submissão do formulário -->
                             <button type="submit" class="btn btn-primary">Login</button>
-                            <!-- ATUALIZADO: Usando um link <a> para o cadastro, que é mais confiável -->
                             <a href="/cadastro" class="btn btn-secondary">Ainda não tem conta? Cadastre-se</a>
                         </form>
                     </div>
@@ -36,21 +33,18 @@
             </div>
         </main>
 
-        <!-- Footer -->
         <footer class="footer">
             <p>&copy; 2025 Sabidin. Diversão e aprendizado para todos.</p>
         </footer>
 
-        <!-- Floating Elements -->
         <div class="floating-element floating-1"></div>
         <div class="floating-element floating-2"></div>
         <div class="floating-element floating-3"></div>
         <div class="floating-element floating-4"></div>
     </div>
 
-    <!-- Elemento para o Pop-up Flutuante -->
     <div id="toast-notification" class="toast-notification"></div>
-    <script src="../script/login.js"></script>
+    
+    <script src="/script/login.js"></script>
 </body>
 </html>
-

@@ -10,9 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastNotification = document.getElementById('toast-notification');
     let toastTimeout;
 
-    // Verificação de segurança
-    if (!form || !emailInput || !senhaInput) {
+    // --- MUDANÇA 1: Adicionado 'toastNotification' à verificação ---
+    if (!form || !emailInput || !senhaInput || !toastNotification) {
         console.error("Erro Crítico: Um ou mais elementos do formulário de login não foram encontrados. Verifique os IDs no ficheiro login.html.");
+        // IDs esperados: 'login-form', 'email', 'senha', 'toast-notification'
         return;
     }
 
@@ -68,7 +69,14 @@ document.addEventListener('DOMContentLoaded', () => {
      * Função para exibir o pop-up flutuante (toast).
      */
     function showToast(message, type = 'error') {
-        if (!toastNotification) return;
+        // --- MUDANÇA 2: Adicionado console.log para depuração ---
+        console.log(`Chamando showToast: [${type}] - ${message}`);
+
+        if (!toastNotification) {
+            console.error('Elemento toastNotification é NULO!');
+            return;
+        }
+        
         clearTimeout(toastTimeout);
         toastNotification.textContent = message;
         toastNotification.className = 'toast-notification';
@@ -78,4 +86,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 });
-

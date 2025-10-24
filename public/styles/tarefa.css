@@ -249,7 +249,7 @@ body {
 .btn-primary { background-color: var(--cor-principal); color: white; }
 .btn-secondary { background-color: var(--cor-fundo-pagina); border-color: var(--cor-borda); color: var(--cor-texto-titulo); }
 
-/* Toast Notification */
+/* Toast Notification (Substitua o bloco antigo por este) */
 .toast-notification {
     position: fixed;
     bottom: 20px;
@@ -263,17 +263,23 @@ body {
     z-index: 1001;
     opacity: 0;
     visibility: hidden;
+    transform: translateY(30px); /* Adiciona animação de subida */
     transition: all 0.4s ease-in-out;
 }
 .toast-notification.show {
     opacity: 1;
     visibility: visible;
+    transform: translateY(0); /* Estado final da animação */
 }
 .toast-notification.success {
     background-color: var(--cor-sucesso);
 }
 .toast-notification.error {
     background-color: var(--cor-erro);
+}
+/* NOVO ESTILO (que estava faltando) */
+.toast-notification.info {
+    background-color: #3b82f6; /* Azul */
 }
 .tabs-nav {
     display: flex;

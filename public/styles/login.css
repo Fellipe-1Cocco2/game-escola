@@ -143,6 +143,36 @@ body {
 .floating-3 { bottom: 25%; left: 4rem; width: 2rem; height: 2rem; background-color: var(--color-blue-400); opacity: 0.7; }
 .floating-4 { bottom: 33.33%; right: 2rem; width: 5rem; height: 5rem; background-color: var(--color-green-400); opacity: 0.5; animation: bounce 4s infinite; }
 
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-size: 0.95em;
+    color: white;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(30px);
+    transition: all 0.4s ease-in-out;
+}
+
+.toast-notification.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.toast-notification.error {
+    background-color: #e53e3e; /* Vermelho */
+}
+
+.toast-notification.success {
+    background-color: #38a169; /* Verde */
+}
+
 @keyframes bounce {
     0%, 100% {
         transform: translateY(-15%);

@@ -4,12 +4,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const listaTarefasEl = document.getElementById('lista-tarefas-jogo');
     const btnSair = document.getElementById('btn-sair');
 
+    // --- NOVOS SELETORES PARA O MODAL ---
+    const btnConfig = document.getElementById('btn-config');
+    const modalConfig = document.getElementById('modal-configuracoes');
+    const btnSalvarConfig = document.getElementById('btn-salvar-config');
+    const selectMusica = document.getElementById('select-musica');
+    const toggleNarracao = document.getElementById('toggle-narracao');
+
     const nomeAluno = sessionStorage.getItem('aluno_nome');
     const alunoId = sessionStorage.getItem('aluno_id');
     const salaId = sessionStorage.getItem('sala_id_atual');
 
     // Validação inicial
-    if (!nomeAlunoEl || !listaTarefasEl || !btnSair) {
+    if (!nomeAlunoEl || !listaTarefasEl || !btnSair || !btnConfig || !modalConfig) {
         console.error("Erro crítico: Elementos essenciais não foram encontrados.");
         return;
     }
@@ -20,6 +27,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     nomeAlunoEl.textContent = nomeAluno;
+
+    // --- CORREÇÃO: FUNÇÕES MOVIDAS PARA ANTES DOS LISTENERS ---
+    function carregarConfiguracoes() {
+        const musica = localStorage.getItem('config_musica') || 'musica1';
+        const narracao = localStorage.getItem('config_narracao') !== 'false'; // Padrão é true
+
+        selectMusica.value = musica;
+        toggleNarracao.checked = narracao;
+    }
+
+    function salvarConfiguracoes() {
+        localStorage.setItem('config_musica', selectMusica.value);
+        localStorage.setItem('config_narracao', toggleNarracao.checked);
+        modalConfig.classList.add('hidden');
+    }
+    // --- FIM DA CORREÇÃO ---
+
+    // --- EVENT LISTENERS DO MODAL ---
+    btnConfig.addEventListener('click', () => {
+        carregarConfiguracoes(); // Agora a função já foi definida
+        modalConfig.classList.remove('hidden');
+    });
+
+    btnSalvarConfig.addEventListener('click', salvarConfiguracoes);
+
+    modalConfig.addEventListener('click', (e) => {
+        // Fecha se clicar fora do modal-content
+        if (e.target === modalConfig) {
+            modalConfig.classList.add('hidden');
+        }
+    });
 
     // Função para renderizar as tarefas na tela
     const renderizarTarefas = (tarefas) => {

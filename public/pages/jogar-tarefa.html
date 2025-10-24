@@ -10,53 +10,73 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="game-container" class="game-container">
-        <!-- Tela de Carregamento -->
-        <div id="loading-screen">Carregando...</div>
+    
+    <div class="main-container">
 
-        <!-- Tela do Jogo -->
-        <div id="game-screen" class="hidden">
-            <header class="game-header">
-                <div class="progress-info">
-                    <span id="question-counter">Pergunta 1 de 5</span>
-                </div>
-                <div class="task-title" id="task-title">Título da Tarefa</div>
-                <div class="score-info">
-                    <span>Pontos: <strong id="score-display">0</strong></span>
-                </div>
-            </header>
-            <main class="question-area">
-                <h2 id="question-text">Qual é a capital do Brasil?</h2>
-            </main>
-            <footer class="answers-grid">
-                <button class="answer-btn" data-index="0">
-                    <div class="answer-shape triangle"></div>
-                    <span class="answer-text">Opção A</span>
-                </button>
-                <button class="answer-btn" data-index="1">
-                    <div class="answer-shape diamond"></div>
-                    <span class="answer-text">Opção B</span>
-                </button>
-                <button class="answer-btn" data-index="2">
-                    <div class="answer-shape circle"></div>
-                    <span class="answer-text">Opção C</span>
-                </button>
-                <button class="answer-btn" data-index="3">
-                    <div class="answer-shape square"></div>
-                    <span class="answer-text">Opção D</span>
-                </button>
-            </footer>
+        <div id="quiz-wrapper" class="quiz-wrapper">
+            <div id="loading-screen" class="quiz-card loading-active">
+                <div class="loader"></div>
+                <p>Carregando o jogo...</p>
+            </div>
+    
+            <div id="game-screen" class="quiz-card hidden">
+                <h1 class="quiz-title" id="task-title">Título da Tarefa</h1>
+                
+                <header class="game-header">
+                    <div class="header-left">
+                        <button id="btn-voltar" class="btn-voltar">&larr; Sair</button>
+                    </div>
+                    <div class="progress-info">
+                        <span id="question-counter">Pergunta 1 de 5</span>
+                    </div>
+                    <div class="score-info">
+                        <span>Pontos: <strong id="score-display">0</strong></span>
+                    </div>
+                </header>
+    
+                <main class="quiz-body">
+                    <h2 id="question-text">Qual é a capital do Brasil?</h2>
+                    <button id="btn-replay-audio" class="btn-replay hidden">🔊 Ouvir Novamente</button>
+                    
+                    <div class="answers-list">
+                        <button class="answer-btn" data-index="0">
+                            <span class="answer-prefix">A</span>
+                            <span class="answer-text">Opção A</span>
+                        </button>
+                        <button class="answer-btn" data-index="1">
+                            <span class="answer-prefix">B</span>
+                            <span class="answer-text">Opção B</span>
+                        </button>
+                        <button class="answer-btn" data-index="2">
+                            <span class="answer-prefix">C</span>
+                            <span class="answer-text">Opção C</span>
+                        </button>
+                        <button class="answer-btn" data-index="3">
+                            <span class="answer-prefix">D</span>
+                            <span class="answer-text">Opção D</span>
+                        </button>
+                    </div>
+                </main>
+            </div>
+    
+            <div id="results-screen" class="quiz-card results-screen hidden">
+                <h1>Fim de Jogo!</h1>
+                <p>Sua pontuação final foi:</p>
+                <div class="final-score" id="final-score">0</div>
+                <p id="final-message">Mandou bem!</p>
+                <button id="btn-voltar-tarefas" class="btn-primary">Voltar para Tarefas</button>
+            </div>
         </div>
 
-        <!-- Tela de Resultados -->
-        <div id="results-screen" class="results-screen hidden">
-            <h1>Fim de Jogo!</h1>
-            <p>Sua pontuação final foi:</p>
-            <div class="final-score" id="final-score">0</div>
-            <p id="final-message">Mandou bem!</p>
-            <button id="btn-voltar-tarefas" class="btn-primary">Voltar para Tarefas</button>
-        </div>
+        <div class="floating-element floating-1"></div>
+        <div class="floating-element floating-2"></div>
+        <div class="floating-element floating-3"></div>
+        <div class="floating-element floating-4"></div>
+        
     </div>
+    
+    <audio id="game-music" loop></audio>
+
     <script src="/script/jogar-tarefa.js"></script>
 </body>
 </html>

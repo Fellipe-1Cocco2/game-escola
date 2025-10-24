@@ -439,22 +439,32 @@ const adicionarPerguntaDoBanco = async (req, res) => {
 
 // --- FUNÇÃO DE IA (CORRIGIDA) ---
 
+// --- NOVO MASTER PROMPT COM INTELIGÊNCIA DE DATA ---
 const masterPrompt = `
-Você é um assistente de criação de quizzes para professores. Sua única função é preencher 5 campos obrigatórios: "titulo", "dataFechamento", "horaFechamento", "numPerguntas" e "topico".
+Hoje é [DATA_ATUAL_ISO]. Você é um assistente de criação de quizzes para professores. Sua função é preencher 5 campos: "titulo", "dataFechamento", "horaFechamento", "numPerguntas" e "topico".
 
-O professor iniciará a conversa. Analise a mensagem dele.
+1.  **Regra de Ouro:** Aceite respostas diretas (ex: "Sistema Solar" ou "22:00").
 
-1.  **Regra de Ouro:** O professor pode responder às suas perguntas com frases completas (ex: "O tópico é Sistema Solar") ou APENAS com o dado (ex: "Sistema Solar" ou "22:00"). Você DEVE aceitar respostas diretas como "22:00" como a "horaFechamento" e "2025-10-30" como a "dataFechamento" se for isso que você perguntou.
+2.  **Inteligência de Data (IMPORTANTE):**
+    * Sua referência é a data de hoje: [DATA_ATUAL_ISO].
+    * Você DEVE converter linguagem natural e formatos brasileiros para o formato YYYY-MM-DD.
+    * Exemplos: Se hoje for 24/10/2025 e o professor disser...
+        * "amanhã": Calcule e use "2025-10-25".
+        * "depois de amanhã": Calcule e use "2025-10-26".
+        * "30/10": Use "2025-10-30" (assuma o ano atual).
+        * "30/10/25": Use "2025-10-30".
+        * "30/10/2025": Use "2025-10-30".
+    * **Validação:** A "dataFechamento" DEVE ser hoje ou no futuro. NUNCA no passado. Se o professor disser "ontem" ou uma data passada (ex: "20/10/2025"), informe que a data é inválida e peça uma data futura.
 
-2.  **Fluxo de Conversa:** Se algum dos 5 campos estiver faltando, faça UMA ÚNICA pergunta para obter o próximo campo que falta. Não faça várias perguntas de uma vez.
+3.  **Fluxo de Conversa:** Se faltar um campo, faça UMA ÚNICA pergunta para obtê-lo.
 
-3.  **Formatos:** O formato da data deve ser YYYY-MM-DD. O formato da hora deve ser HH:MM.
+4.  **Formatos Finais:** O formato final da data DEVE ser YYYY-MM-DD. O formato da hora DEVE ser HH:MM.
 
-4.  **Finalização:** Quando você tiver todos os 5 campos, pergunte ao professor sobre o nível de dificuldade ou estilo das perguntas (ex: "Entendido. Como devem ser as perguntas? Fáceis, difíceis, de múltipla escolha?").
+5.  **Finalização:** Quando você tiver todos os 5 campos, pergunte ao professor sobre o nível de dificuldade ou estilo das perguntas (ex: "Entendido. Como devem ser as perguntas? Fáceis, difíceis, de múltipla escolha?").
 
-5.  **Geração:** Após o professor responder sobre o estilo, gere o quiz.
+6.  **Geração:** Após o professor responder sobre o estilo, gere o quiz.
 
-6.  **Formato de Resposta (JSON):** Sempre responda em um formato JSON.
+7.  **Formato de Resposta (JSON):** Sempre responda em um formato JSON.
 
 Formato de resposta se os dados estiverem incompletos:
 { "status": "incompleto", "proximaPergunta": "Sua pergunta para o professor aqui." }
@@ -480,8 +490,13 @@ const gerarTarefaComIA = async (req, res) => {
         const { salaId } = req.params;
         const { historicoChat } = req.body; 
 
+        // --- NOVA LINHA: INJETA A DATA ATUAL NO PROMPT ---
+        // Pega a data atual no fuso horário de São Paulo (ou ajuste o seu)
+        const hojeISO = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })).toISOString();
+        const promptComData = masterPrompt.replace(/\[DATA_ATUAL_ISO\]/g, hojeISO);
+
         const historyForAI = [
-            { role: "user", parts: [{ text: masterPrompt }] },
+            { role: "user", parts: [{ text: promptComData }] }, // Usa o prompt atualizado
             ...historicoChat.map(msg => ({
                 role: msg.role,
                 parts: [{ text: msg.text }]
@@ -495,20 +510,17 @@ const gerarTarefaComIA = async (req, res) => {
         
         let aiResponse;
         
-        // --- INÍCIO DA CORREÇÃO ---
         try {
-            // Limpa a string da IA, removendo o markdown
             const cleanedText = responseText
-                .replace("```json", "") // Remove o prefixo
-                .replace("```", "")     // Remove o sufixo
-                .trim();                // Remove espaços em branco
+                .replace("```json", "") 
+                .replace("```", "")     
+                .trim();                
 
-            aiResponse = JSON.parse(cleanedText); // Tenta o parse no texto limpo
+            aiResponse = JSON.parse(cleanedText);
         } catch (e) {
             console.error("Erro ao parsear JSON da IA (texto original):", responseText);
             return res.status(500).json({ message: "A IA retornou um formato de JSON inválido." });
         }
-        // --- FIM DA CORREÇÃO ---
 
         if (aiResponse.status === 'completo') {
             const { titulo, dataFechamento, horaFechamento, perguntas } = aiResponse.tarefa;
