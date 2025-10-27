@@ -1,3 +1,5 @@
+Link - https://game-escola.vercel.app/
+
 # game-escola
 
 Se for rodar, usar o comando "node --watch server.js" na pasta raiz do projeto.
