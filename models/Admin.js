@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const professorSchema = new mongoose.Schema({
+const adminSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Por favor, adicione um nome']
@@ -19,21 +19,17 @@ const professorSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Por favor, adicione uma senha'],
         minlength: 6,
-        select: false
+        select: false // Não retorna a senha por padrão nas buscas
     },
-    // --- NOVO CAMPO ADICIONADO ---
-    school: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'School', // Referencia o modelo 'School' que criamos
-        required: [true, 'A escola é obrigatória.'] // Torna a escola obrigatória no cadastro
+    // Futuramente, pode-se adicionar roles (superadmin, etc.)
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
-    // --- FIM DO NOVO CAMPO ---
-}, {
-    timestamps: true
 });
 
-// Hook para criptografar a senha antes de salvar
-professorSchema.pre('save', async function(next) {
+// Hook para criptografar a senha antes de salvar (igual ao Professor)
+adminSchema.pre('save', async function(next) {
     if (!this.isModified('password')) {
         return next();
     }
@@ -42,9 +38,9 @@ professorSchema.pre('save', async function(next) {
     next();
 });
 
-// Método para comparar a senha digitada com a senha no banco de dados
-professorSchema.methods.matchPassword = async function(enteredPassword) {
+// Método para comparar a senha digitada com a senha no banco (igual ao Professor)
+adminSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-module.exports = mongoose.model('Professor', professorSchema);
+module.exports = mongoose.model('Admin', adminSchema);

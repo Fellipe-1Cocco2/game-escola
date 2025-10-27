@@ -27,9 +27,14 @@ const perguntaDaTarefaSchema = new mongoose.Schema({
 // Schema para uma tarefa individual
 const tarefaSchema = new mongoose.Schema({
     titulo: { type: String, required: [true, 'O título da tarefa é obrigatório.'] },
-    dataFechamento: { type: Date },
-    horaFechamento: { type: String },
-    // A linha abaixo foi corrigida para usar o schema correto
+    dataFechamento: { 
+        type: Date, 
+        required: [true, 'A data de fechamento é obrigatória.'] 
+    },
+    horaFechamento: { 
+        type: String, 
+        required: [true, 'A hora de fechamento é obrigatória.'] 
+    },
     perguntas: [perguntaDaTarefaSchema],
     progressos: [progressoSchema]
 }, { timestamps: true });
@@ -37,14 +42,20 @@ const tarefaSchema = new mongoose.Schema({
 
 // Modelo Principal da Sala
 const salaSchema = new mongoose.Schema({
-    num_serie: { type: String, required: true, unique: true },
+    num_serie: { 
+        type: String, 
+        required: true 
+        // unique: true FOI REMOVIDO DAQUI 
+    },
     criador: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Professor' },
     editoresConvidados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Professor' }],
     tarefas: [tarefaSchema],
-    // A linha abaixo foi alterada para referenciar o novo modelo 'Aluno'
-    alunos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Aluno' }]
+    alunos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Aluno' }],
+    codigoCurto: {
+        type: String,
+        unique: true, // Garante que cada código curto seja único em toda a coleção
+        required: true,}
 }, { timestamps: true });
 
 
 module.exports = mongoose.model('Sala', salaSchema);
-

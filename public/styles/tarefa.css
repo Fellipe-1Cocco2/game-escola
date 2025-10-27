@@ -12,18 +12,27 @@
     --cor-borda: #e5e7eb;
     --cor-sucesso: #10b981;
     --cor-erro: #ef4444;
-    --cor-correta: #16a34a;
+    --cor-correta: #16a34a; /* Verde para resposta correta */
+    --cor-incorreta: #dc2626; /* Vermelho para resposta incorreta */
+    --cor-escolhida-certa-fundo: #dcfce7; /* Fundo verde claro */
+    --cor-escolhida-errada-fundo: #fee2e2; /* Fundo vermelho claro */
     --sombra-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
     --fonte-principal: 'Poppins', sans-serif;
     --fonte-titulo: 'Fredoka One', cursive;
+    /* --- ADICIONE ESTAS VARIÁVEIS --- */
+    --cor-azul-claro: #eff6ff;
+    --cor-azul-texto: #2563eb;
+    --cor-verde-claro: #f0fdf4;
+    --cor-verde-texto: #16a34a;
+    --cor-amarelo-claro: #fefce8;
+    --cor-amarelo-texto: #ca8a04;
+    --cor-rosa-claro: #fdf2f8;
+    --cor-rosa-texto: #db2777;
+    /* --- FIM DA ADIÇÃO --- */
 }
 
 /* Reset Básico */
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
     font-family: var(--fonte-principal);
@@ -46,6 +55,11 @@ body {
     max-width: 1200px;
     margin: 0 auto;
 }
+.header-info {
+    display: flex; /* Alinha o botão voltar e o título */
+    align-items: center;
+    gap: 1rem;
+}
 .header-info h1 {
     font-family: var(--fonte-titulo);
     font-size: 2rem;
@@ -55,336 +69,405 @@ body {
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
-    padding: 0.6rem 1.2rem;
+    padding: 0.6rem 1rem; /* Ajuste padding */
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
     transition: background-color 0.2s ease;
+    flex-shrink: 0; /* Impede que encolha */
+}
+.header-actions { /* Container para o botão editar */
+    display: flex;
+}
+.btn-editar-header {
+    /* Estilos base (iguais ao .btn-voltar) */
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.6rem 1.2rem; /* Padding igual ao .btn-voltar (ajustado se necessário) */
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+
+    /* Propriedades Flexbox para alinhar ícone e texto */
+    display: inline-flex; /* Usar inline-flex para se comportar melhor ao lado de outros elementos */
+    align-items: center;  /* Alinha verticalmente */
+    justify-content: center; /* Alinha horizontalmente (caso precise) */
+    gap: 0.5rem;          /* Espaço entre ícone e texto */
+
+    /* Garante que o SVG herde a cor e tenha tamanho fixo */
+    line-height: 1; /* Ajuda no alinhamento vertical do texto */
+}
+
+/* Garante que o SVG dentro do botão tenha a cor correta */
+.btn-editar-header svg {
+    stroke: currentColor; /* Usa a cor do texto do botão (branco) */
+    width: 20px; /* Define largura explícita */
+    height: 20px; /* Define altura explícita */
+    flex-shrink: 0; /* Impede que o ícone encolha */
+}
+
+/* Efeito Hover (igual ao .btn-voltar) */
+.btn-editar-header:hover {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Layout Principal */
-.main-content { 
-    max-width: 1200px; 
-    margin: 2rem auto; 
-    padding: 0 2rem; 
-}
+.main-content { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
 
-.content-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 2rem;
-}
-
-.coluna-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--cor-borda);
-}
-.coluna-header h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--cor-texto-titulo);
-}
-.btn-adicionar { 
-    background-color: var(--cor-principal); 
-    color: white; 
-    border: none; 
-    padding: 0.6rem 1.2rem; 
-    border-radius: 8px; 
-    font-weight: 600; 
-    cursor: pointer; 
-}
+.coluna-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cor-borda); }
+.coluna-header h3 { font-size: 1.25rem; font-weight: 600; color: var(--cor-texto-titulo); }
+.btn-adicionar { background-color: var(--cor-principal); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
 
 /* Listas e Cards */
-.lista {
-    background-color: var(--cor-fundo-card);
-    border-radius: 12px;
-    padding: 1rem;
-    min-height: 400px;
-    box-shadow: var(--sombra-card);
-}
+.lista { background-color: var(--cor-fundo-card); border-radius: 12px; padding: 1rem; min-height: 400px; box-shadow: var(--sombra-card); }
 .scrollable { max-height: 500px; overflow-y: auto; }
+.lista-clicavel .resultado-item { cursor: pointer; transition: background-color 0.2s; }
+.lista-clicavel .resultado-item:hover { background-color: #f9fafb; }
 
-.pergunta-card {
-    background-color: #fafafa;
-    border-left: 4px solid var(--cor-principal-clara);
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 8px;
-}
+
+.pergunta-card { background-color: #fafafa; border-left: 4px solid var(--cor-principal-clara); padding: 1rem; margin-bottom: 1rem; border-radius: 8px; position: relative; }
 .pergunta-card strong { display: block; margin-bottom: 0.75rem; color: var(--cor-texto-titulo); }
 .pergunta-card ol { list-style-type: upper-alpha; padding-left: 1.5rem; }
+.pergunta-card ol li { margin-bottom: 0.25rem; }
 .pergunta-card ol li.correta { font-weight: 600; color: var(--cor-correta); }
+.btn-remover-pergunta { background-color: var(--cor-erro); color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; opacity: 0; transition: opacity 0.2s; position: absolute; top: 1rem; right: 1rem; }
+.pergunta-card:hover .btn-remover-pergunta { opacity: 1; }
 
-.banco-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem;
-    border-bottom: 1px solid var(--cor-borda);
-}
+.banco-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border-bottom: 1px solid var(--cor-borda); }
 .banco-item:last-child { border-bottom: none; }
 .banco-item p { margin: 0; flex-grow: 1; padding-right: 1rem; }
-.btn-adicionar-banco { 
-    background-color: var(--cor-sucesso); 
-    color: white; border: none; 
-    padding: 0.4rem 0.8rem; 
-    border-radius: 6px; 
-    cursor: pointer; 
-}
+.btn-adicionar-banco { background-color: var(--cor-sucesso); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; }
 
-/* --- MODAL (ESTILO KAHOOT) --- */
-.modal-overlay { 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%; 
-    background-color: rgba(17, 24, 39, 0.6); 
-    backdrop-filter: blur(5px); 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    z-index: 1000; 
-}
+/* Modal Genérico */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.modal-content { background-color: white; padding: 2rem; border-radius: 12px; max-width: 700px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cor-borda);}
+.modal-header h2 { margin: 0; font-size: 1.5rem; color: var(--cor-texto-titulo); }
+.btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; line-height: 1; }
+/* Form dentro do modal */
+.modal-content form { display: flex; flex-direction: column; gap: 1rem; } /* Gap define o espaço */
 
-.modal-content { 
-    background-color: white; 
-    padding: 2rem; 
-    border-radius: 12px; 
-    max-width: 700px;
-    width: 90%; 
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); 
+/* --- CORREÇÃO: Estilo da Label no Modal --- */
+.modal-content form label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--cor-texto-corpo);
+    margin-bottom: 0.25rem; /* Margem positiva */
+    display: block; /* Garante quebra de linha */
 }
+/* --- FIM CORREÇÃO --- */
 
-.kahoot-modal h2 {
+.modal-content input, .modal-content textarea { width: 100%; padding: 0.75rem 1rem; font-size: 1rem; border: 1px solid var(--cor-borda); border-radius: 8px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
+.modal-actions button { padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+.btn-primary { background-color: var(--cor-principal); color: white; }
+.btn-secondary { background-color: var(--cor-fundo-pagina); border-color: var(--cor-borda); color: var(--cor-texto-titulo); }
+
+/* --- CORREÇÃO: Nota no modal de edição --- */
+.nota-modal {
+    font-size: 0.85rem;
+    color: var(--cor-texto-secundario);
+    /* Removida margem negativa */
+    margin-bottom: 0.5rem; /* Pequena margem antes dos botões */
     text-align: center;
-    font-size: 1.5rem;
-    color: var(--cor-texto-titulo);
-    margin-bottom: 1.5rem;
 }
+/* --- FIM CORREÇÃO --- */
 
-.kahoot-modal textarea {
-    width: 100%;
-    min-height: 100px;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 2px solid var(--cor-borda);
-    resize: vertical;
-    font-size: 1.1rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
-}
 
+/* Modal Kahoot */
+/* Modal Kahoot (Reestilizado para parecer com a tela do Aluno) */
+.kahoot-modal h2 { text-align: center; }
+.kahoot-modal textarea { width: 100%; min-height: 100px; padding: 1rem; border-radius: 8px; border: 2px solid var(--cor-borda); resize: vertical; font-size: 1.1rem; text-align: center; margin-bottom: 1.5rem; }
+
+/* O container agora é uma coluna */
 .kahoot-opcoes-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
 }
 
+/* O prefixo (A, B, C, D) */
+.kahoot-prefixo {
+    font-family: var(--fonte-titulo);
+    font-size: 1.2rem;
+    color: white;
+}
+
+/* O botão de opção (reestilizado) */
 .kahoot-opcao {
     display: flex;
     align-items: center;
-    background-color: var(--cor-fundo-card);
-    border-radius: 8px;
-    border: 2px solid var(--cor-borda);
-    padding: 0.5rem;
+    border: 2px solid transparent;
+    padding: 1rem;
+    gap: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border-radius: 12px; /* Arredondado */
 }
 
+/* O ícone (agora é o prefixo A, B, C, D) */
 .kahoot-icone-fundo {
-    background-color: var(--cor-kahoot);
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 6px;
+    border-radius: 8px; /* Quadrado arredondado */
     flex-shrink: 0;
 }
 
-.kahoot-icone {
-    width: 32px;
-    height: 32px;
-    fill: white;
-}
-
+/* O campo de input de texto */
 .input-opcao {
     flex-grow: 1;
     border: none;
     background: none;
-    padding: 0 1rem;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--cor-texto-titulo);
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    color: currentColor !important; /* Herda a cor (azul, verde, etc.) */
+    padding: 0 0.5rem !important;
+}
+.input-opcao::placeholder {
+    color: currentColor;
+    opacity: 0.7;
 }
 
-.input-opcao:focus {
-    outline: none;
-}
-
+/* O botão de rádio (seleção) */
 .kahoot-radio {
     width: 20px;
     height: 20px;
-    margin-right: 0.5rem;
+    margin-left: auto; /* Joga para a direita */
     cursor: pointer;
 }
 
-.modal-actions { 
-    display: flex; 
-    justify-content: flex-end; 
-    gap: 1rem; 
-    margin-top: 2rem; 
+/* Realce ao selecionar uma opção */
+.kahoot-opcao:has(.kahoot-radio:checked) {
+    border-color: var(--cor-principal) !important;
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
 }
-.modal-actions button { 
-    padding: 0.6rem 1.2rem; 
-    border-radius: 8px; 
-    font-weight: 600; 
-    cursor: pointer; 
-    border: 1px solid transparent; 
-}
-.btn-primary { background-color: var(--cor-principal); color: white; }
-.btn-secondary { background-color: var(--cor-fundo-pagina); border-color: var(--cor-borda); color: var(--cor-texto-titulo); }
 
-/* Toast Notification (Substitua o bloco antigo por este) */
-.toast-notification {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    box-shadow: var(--sombra-card);
-    font-size: 1rem;
-    font-weight: 500;
-    color: white;
-    z-index: 1001;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(30px); /* Adiciona animação de subida */
-    transition: all 0.4s ease-in-out;
-}
-.toast-notification.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0); /* Estado final da animação */
-}
-.toast-notification.success {
-    background-color: var(--cor-sucesso);
-}
-.toast-notification.error {
-    background-color: var(--cor-erro);
-}
-/* NOVO ESTILO (que estava faltando) */
-.toast-notification.info {
-    background-color: #3b82f6; /* Azul */
-}
-.tabs-nav {
-    display: flex;
-    border-bottom: 2px solid var(--cor-borda);
-    margin-bottom: 2rem;
-}
-.tab-link {
-    padding: 1rem 1.5rem;
-    cursor: pointer;
-    border: none;
-    background-color: transparent;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--cor-texto-corpo);
-    position: relative;
-    top: 2px;
-    border-bottom: 2px solid transparent;
-}
-.tab-link.active {
-    color: var(--cor-principal);
-    border-bottom-color: var(--cor-principal);
-}
+/* Cores de Fundo das Opções */
+.kahoot-opcao[data-index="0"] { background-color: var(--cor-azul-claro); color: var(--cor-azul-texto); }
+.kahoot-opcao[data-index="1"] { background-color: var(--cor-verde-claro); color: var(--cor-verde-texto); }
+.kahoot-opcao[data-index="2"] { background-color: var(--cor-amarelo-claro); color: var(--cor-amarelo-texto); }
+.kahoot-opcao[data-index="3"] { background-color: var(--cor-rosa-claro); color: var(--cor-rosa-texto); }
+
+/* Cores de Fundo dos Prefixos */
+.kahoot-icone-fundo[data-index="0"] { background-color: var(--cor-azul-texto); }
+.kahoot-icone-fundo[data-index="1"] { background-color: var(--cor-verde-texto); }
+.kahoot-icone-fundo[data-index="2"] { background-color: var(--cor-amarelo-texto); }
+.kahoot-icone-fundo[data-index="3"] { background-color: var(--cor-rosa-texto); }
+
+/* Toast Notification */
+.toast-notification { position: fixed; bottom: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: var(--sombra-card); font-size: 1rem; font-weight: 500; color: white; z-index: 1001; opacity: 0; visibility: hidden; transform: translateY(30px); transition: all 0.4s ease-in-out; }
+.toast-notification.show { opacity: 1; visibility: visible; transform: translateY(0); }
+.toast-notification.success { background-color: var(--cor-sucesso); }
+.toast-notification.error { background-color: var(--cor-erro); }
+.toast-notification.info { background-color: #3b82f6; }
+
+/* Abas Principais */
+.tabs-nav { display: flex; border-bottom: 2px solid var(--cor-borda); margin-bottom: 2rem; }
+.tab-link { padding: 1rem 1.5rem; cursor: pointer; border: none; background-color: transparent; font-size: 1rem; font-weight: 600; color: var(--cor-texto-corpo); position: relative; top: 2px; border-bottom: 2px solid transparent; }
+.tab-link.active { color: var(--cor-principal); border-bottom-color: var(--cor-principal); }
 .tab-pane { display: none; }
 .tab-pane.active { display: block; }
 
-/* --- NOVOS ESTILOS PARA A LISTA DE RESULTADOS --- */
-.resultado-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid var(--cor-borda);
+/* Lista de Resultados */
+.resultado-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--cor-borda); }
+.resultado-item:last-child { border-bottom: none; }
+.resultado-aluno-info { font-weight: 500; }
+.resultado-aluno-info small { display: block; color: var(--cor-texto-corpo); font-size: 0.85rem; }
+.resultado-progresso { display: flex; align-items: center; gap: 1rem; }
+.resultado-status { font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 12px; text-transform: uppercase; color: white; }
+.status-concluido { background-color: var(--cor-sucesso); }
+.status-em-andamento { background-color: #fbbf24; }
+.status-nao-iniciado { background-color: #9ca3af; }
+.status-nao-entregue { background-color: var(--cor-erro); }
+.resultado-pontuacao { font-weight: 600; background-color: var(--cor-principal-clara); color: white; padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.9rem; }
+
+/* Busca no Banco */
+.search-container { margin-bottom: 1rem; }
+#input-busca-banco { width: 100%; padding: 0.75rem 1rem; font-size: 1rem; border: 1px solid var(--cor-borda); border-radius: 8px; }
+
+/* Modal Visualizar Respostas */
+.modal-respostas { max-width: 600px; }
+.modal-respostas-body { max-height: 60vh; overflow-y: auto; padding-right: 1rem; margin-top: 1rem; }
+.resposta-pergunta-item { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--cor-borda); }
+.resposta-pergunta-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.resposta-pergunta-item strong { display: block; font-size: 1.1rem; color: var(--cor-texto-titulo); margin-bottom: 1rem; }
+.resposta-pergunta-item ol { list-style: none; padding-left: 0; }
+.resposta-pergunta-item li { padding: 0.5rem 0.75rem; border: 1px solid var(--cor-borda); border-radius: 6px; margin-bottom: 0.5rem; display: flex; align-items: center; }
+.resposta-prefixo { font-weight: 600; margin-right: 0.75rem; color: var(--cor-texto-secundario); }
+.resposta-texto { flex-grow: 1; }
+/* Destaques de Certo/Errado */
+.resposta-pergunta-item li.escolhida.correta { background-color: var(--cor-escolhida-certa-fundo); border-color: var(--cor-correta); font-weight: 600; color: var(--cor-correta); }
+.resposta-pergunta-item li.escolhida.correta .resposta-prefixo { color: var(--cor-correta); }
+.resposta-pergunta-item li.escolhida.incorreta { background-color: var(--cor-escolhida-errada-fundo); border-color: var(--cor-incorreta); font-weight: 600; color: var(--cor-incorreta); text-decoration: line-through; }
+.resposta-pergunta-item li.escolhida.incorreta .resposta-prefixo { color: var(--cor-incorreta); }
+.resposta-pergunta-item li.era-correta { border-color: var(--cor-correta); font-weight: 600; color: var(--cor-correta); }
+.resposta-pergunta-item li.era-correta .resposta-prefixo { color: var(--cor-correta); }
+
+/* --- NOVOS ESTILOS PARA SELETOR V/F --- */
+.form-group-tipo-pergunta {
+    margin-bottom: 1.5rem;
 }
-.resultado-item:last-child {
-    border-bottom: none;
-}
-.resultado-aluno-info {
-    font-weight: 500;
-}
-.resultado-aluno-info small {
+.form-group-tipo-pergunta label {
     display: block;
-    color: var(--cor-texto-corpo);
-    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--cor-texto-titulo);
 }
-.resultado-progresso {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-.resultado-status {
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
-    text-transform: uppercase;
-}
-.status-concluido {
-    background-color: var(--cor-sucesso);
-    color: white;
-}
-.status-em-andamento {
-    background-color: #fbbf24; /* Amarelo */
-    color: white;
-}
-.resultado-pontuacao {
-    font-weight: 600;
-    background-color: var(--cor-principal-clara);
-    color: white;
-    padding: 0.3rem 0.8rem;
-    border-radius: 50px;
-    font-size: 0.9rem;
-}
-.status-nao-iniciado {
-    background-color: #9ca3af; /* Cinza */
-    color: white;
-}
-.status-nao-entregue {
-    background-color: var(--cor-erro); /* Vermelho */
-    color: white;
-}
-
-.btn-remover-pergunta {
-    background-color: var(--cor-erro);
-    color: white;
-    border: none;
-    padding: 0.3rem 0.6rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    margin-left: 1rem; /* Espaço à esquerda */
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-.pergunta-card:hover .btn-remover-pergunta {
-    opacity: 1; /* Mostra o botão ao passar o mouse no card */
-}
-
-/* Estilo para o container da busca */
-.search-container {
-    margin-bottom: 1rem;
-}
-#input-busca-banco {
+.form-group-tipo-pergunta select {
     width: 100%;
     padding: 0.75rem 1rem;
     font-size: 1rem;
     border: 1px solid var(--cor-borda);
     border-radius: 8px;
+    background-color: #f9fafb;
+}
+
+.vf-opcoes-container {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 1.5rem 0;
+}
+.vf-opcao {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    border: 2px solid var(--cor-borda);
+    transition: all 0.2s;
+}
+.vf-opcao input[type="radio"] {
+    width: 20px;
+    height: 20px;
+}
+.vf-opcao:has(input:checked) {
+    border-color: var(--cor-principal);
+    background-color: #f5f3ff;
+    color: var(--cor-principal);
+}
+/* --- FIM DOS NOVOS ESTILOS --- */
+
+* --- ESTILOS PARA O MODAL DE PREVIEW DA PERGUNTA DO BANCO --- */
+
+/* Ajusta o tamanho máximo se necessário */
+.modal-preview {
+    max-width: 600px; 
+}
+
+.modal-preview-body {
+    margin-top: 1.5rem; /* Espaço após o header do modal */
+    padding-bottom: 1rem; /* Espaço antes dos botões de ação */
+}
+
+/* Estilo para o texto da pergunta no preview */
+.preview-question-text-style {
+    font-size: 1.3rem; /* Um pouco menor que no jogo */
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.5;
+    color: var(--cor-texto-titulo);
+    margin-bottom: 2rem; /* Espaço antes das opções */
+}
+
+/* Container das opções no preview */
+.preview-answers-list-style {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* Espaço menor entre opções no preview */
+}
+
+/* Reutiliza o estilo base do botão de resposta do aluno */
+.modal-preview .answer-btn-preview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1rem; /* Padding ligeiramente menor */
+    border: 2px solid transparent;
+    border-radius: 10px; /* Um pouco menos redondo */
+    font-size: 1rem; /* Tamanho da fonte menor */
+    font-weight: 500; /* Peso normal */
+    cursor: default; /* Não é clicável no preview */
+    text-align: left;
+}
+
+/* Reutiliza o estilo base do prefixo (A, B, C, D) */
+.modal-preview .answer-prefix-preview {
+    font-family: var(--fonte-titulo);
+    font-size: 1rem; /* Tamanho menor */
+    width: 35px; /* Tamanho menor */
+    height: 35px; /* Tamanho menor */
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 6px; /* Menos redondo */
+    color: white;
+}
+
+/* Reutiliza o estilo base do texto da resposta */
+.modal-preview .answer-text-preview {
+    flex-grow: 1;
+    line-height: 1.4;
+}
+
+/* Cores de Fundo das Opções (Igual ao aluno) */
+.modal-preview .answer-btn-preview[data-index="0"] { background-color: var(--cor-azul-claro); color: var(--cor-azul-texto); }
+.modal-preview .answer-btn-preview[data-index="1"] { background-color: var(--cor-verde-claro); color: var(--cor-verde-texto); }
+.modal-preview .answer-btn-preview[data-index="2"] { background-color: var(--cor-amarelo-claro); color: var(--cor-amarelo-texto); }
+.modal-preview .answer-btn-preview[data-index="3"] { background-color: var(--cor-rosa-claro); color: var(--cor-rosa-texto); }
+
+/* Cores de Fundo dos Prefixos (Igual ao aluno) */
+.modal-preview .answer-prefix-preview[data-index="0"] { background-color: var(--cor-azul-texto); }
+.modal-preview .answer-prefix-preview[data-index="1"] { background-color: var(--cor-verde-texto); }
+.modal-preview .answer-prefix-preview[data-index="2"] { background-color: var(--cor-amarelo-texto); }
+.modal-preview .answer-prefix-preview[data-index="3"] { background-color: var(--cor-rosa-texto); }
+
+/* --- NOVO: Estilo para destacar a resposta correta no preview --- */
+.modal-preview .answer-btn-preview.preview-correct-answer {
+    border-color: var(--cor-principal) !important; /* Borda roxa forte */
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2); /* Sombra roxa clara */
+    font-weight: 600; /* Deixa o texto em negrito */
+}
+/* --- FIM DO NOVO ESTILO --- */
+/* Adicione se não existir em outro lugar */
+.btn-danger { background-color: var(--cor-erro); color: white; }
+.btn-danger:hover { background-color: #dc2626; /* Um vermelho mais escuro */ }
+
+/* Ajusta o container do título e data */
+.titulo-data-container {
+    display: flex;
+    flex-direction: column; /* Coloca a data abaixo do título */
+}
+
+/* Estilo para a informação de fechamento */
+.header-fechamento-info {
+    font-size: 0.9rem; /* Tamanho menor */
+    opacity: 0.9; /* Levemente mais claro */
+    margin-top: 2px; /* Pequeno espaço abaixo do título */
+    color: white; /* Garante que seja branco como o título */
+}
+
+/* Garante alinhamento se o botão voltar estiver presente */
+.header-info {
+    /* display: flex; já existe */
+    /* align-items: center; já existe */
+    gap: 1rem; /* já existe */
+}
+
+/* Ajuste fino no título para não ter margem inferior extra */
+.header-info h1 {
+    /* font-family, font-size, margin: 0; já existem */
+    line-height: 1.2; /* Ajusta a altura da linha */
 }

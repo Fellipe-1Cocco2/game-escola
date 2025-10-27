@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sabidin - Login Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Reutiliza estilos de login, mas pode ser um CSS admin dedicado -->
+    <link rel="stylesheet" href="/styles/login.css"> 
+    <link rel="stylesheet" href="/styles/admin.css"> <!-- Estilos específicos do Admin -->
+</head>
+<body>
+    <div class="main-container admin-bg"> <!-- Fundo diferente para admin -->
+
+        <main class="content">
+            <div class="card-container">
+                 <div class="container-img-sabidin">
+                     <img class="img-sabidin" src="../img/sabidin.png" alt="Logo Sabidin Admin">
+                 </div>
+                <div class="card">
+                    <div class="card-content">
+                        <form id="admin-login-form" class="form-container">
+                            <h1 class="titulo">Login Administrativo</h1>
+                            <input type="email" placeholder="E-mail" id="email" class="email-input" required>
+                            <input type="password" placeholder="Senha" id="senha" class="senha-input" required>
+                            <button type="submit" class="btn btn-primary btn-admin">Entrar</button>
+                             <!-- Link opcional para voltar, se necessário -->
+                             <!-- <a href="/" class="link-voltar">Voltar ao site</a> -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2025 Sabidin - Painel Administrativo</p>
+        </footer>
+    </div>
+
+    <div id="toast-notification" class="toast-notification"></div>
+    <script src="/script/admin-login.js"></script>
+</body>
+</html>

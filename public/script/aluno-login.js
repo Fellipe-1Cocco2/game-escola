@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sessionStorage.setItem('aluno_id', data.aluno._id);
             sessionStorage.setItem('aluno_nome', data.aluno.nome);
             // Salva o código da sala que o aluno acabou de usar para logar
-            sessionStorage.setItem('sala_id_atual', codigoSala); 
+            sessionStorage.setItem('sala_id_atual', data.salaIdOriginal);
             // O 'tarefas' no sessionStorage agora serve apenas como um fallback inicial
             sessionStorage.setItem('tarefas', JSON.stringify(data.tarefas));
 

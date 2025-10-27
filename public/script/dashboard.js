@@ -49,12 +49,20 @@ document.addEventListener('DOMContentLoaded', () => {
             renderSalas(salas);
 
         } catch (error) {
-            console.error("Erro:", error);
-            showToast(error.message, 'error');
-            // Se a sessão expirou, desloga o usuário
-            if (error.message.includes('Sessão')) {
-                handleLogout();
+            console.error("Erro ao buscar dados do dashboard:", error);
+            
+            // --- INÍCIO DA MODIFICAÇÃO: Tratamento de erro 401 ---
+            if (error.status === 401) {
+                showToast('Sua sessão expirou. Por favor, faça login novamente.', 'error');
+                // Atraso para o usuário ler o toast antes de redirecionar
+                setTimeout(() => {
+                    handleLogout(); // handleLogout já redireciona para /login
+                }, 2000);
+            } else {
+                // Mostra outros erros normalmente
+                showToast(error.message || 'Não foi possível carregar os dados.', 'error');
             }
+            // --- FIM DA MODIFICAÇÃO ---
         }
     };
 

@@ -5,24 +5,26 @@ const perguntaSchema = new mongoose.Schema({
         type: String,
         required: [true, 'O texto da pergunta é obrigatório.']
     },
+    // --- NOVO CAMPO ---
+    tipo: {
+        type: String,
+        enum: ['multipla_escolha', 'vf'], // vf = Verdadeiro/Falso
+        default: 'multipla_escolha',
+        required: true
+    },
     opcoes: {
         type: [String],
-        required: true,
-        validate: [
-            val => val.length === 4,
-            'A pergunta deve ter exatamente 4 opções.'
-        ]
+        required: true
+    // REMOVA A SEÇÃO 'validate: [...]' daqui
     },
-    // Guarda o índice (0, 1, 2, ou 3) da opção correta no array de opções
     opcaoCorreta: {
         type: Number,
         required: [true, 'É necessário definir a opção correta.'],
         min: 0,
-        max: 3
-    }
+        max: 3 // Mantenha este simplificado
+    },
 }, {
     timestamps: true
 });
 
 module.exports = mongoose.model('Pergunta', perguntaSchema);
-

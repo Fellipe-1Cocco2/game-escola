@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Escola - Admin Sabidin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/admin.css">
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="admin-dashboard-bg">
+    <header class="admin-header">
+        <div class="header-content">
+            <h1><a href="/admin/dashboard" class="header-link">Painel Administrativo</a> / Detalhes da Escola</h1>
+            <div class="admin-user-info">
+                <span id="admin-name">Admin</span> <!-- Simplificado por enquanto -->
+                <button id="btn-logout" class="btn-logout-admin">
+                    <i data-feather="log-out"></i> Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="admin-container admin-details-container"> <!-- Container único para detalhes -->
+
+        <!-- Card Informações da Escola -->
+        <section class="admin-card">
+            <div class="card-header-flex">
+                 <h2 id="school-name-header">Carregando escola...</h2>
+                 <!-- Botão Editar Escola pode vir aqui -->
+                 <!-- <button class="btn-edit" id="btn-edit-school-name"><i data-feather="edit-2"></i> Editar Nome</button> -->
+            </div>
+        </section>
+
+        <!-- Card Lista de Professores -->
+        <section class="admin-card">
+            <h2>Professores da Escola</h2>
+            <div class="table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="professors-table-body">
+                        <tr><td colspan="3" class="loading-text">Carregando professores...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Card Lista de Salas -->
+        <section class="admin-card">
+             <h2>Salas Criadas (por professores desta escola)</h2>
+             <div class="table-wrapper">
+                 <table class="admin-table">
+                     <thead>
+                         <tr>
+                             <th>Nome da Sala (Série/Turma)</th>
+                             <th>Criador</th>
+                             <th>Nº Alunos</th>
+                             <th>Nº Tarefas</th>
+                             <th>Ações</th>
+                         </tr>
+                     </thead>
+                     <tbody id="salas-table-body">
+                         <tr><td colspan="5" class="loading-text">Carregando salas...</td></tr>
+                     </tbody>
+                 </table>
+             </div>
+         </section>
+
+    </main>
+
+    <!-- Modais (Editar Sala, etc.) podem vir aqui -->
+
+    <div id="toast-notification" class="toast-notification"></div>
+
+    <script src="/script/admin-school-details.js"></script> <!-- Script dedicado -->
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

@@ -3,25 +3,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Seleciona os elementos do formulário e o pop-up
     const form = document.getElementById('cadastro-form');
-    // CORREÇÃO: O ID no HTML original era "Nome" com 'N' maiúsculo.
     const nomeInput = document.getElementById('Nome');
     const emailInput = document.getElementById('email');
     const senhaInput = document.getElementById('senha');
     const confirmeSenhaInput = document.getElementById('confirme-senha');
+    const schoolSelect = document.getElementById('school-select'); // NOVO SELETOR
     const toastNotification = document.getElementById('toast-notification');
     let toastTimeout; // Variável para controlar o timer do pop-up
 
-    // Verificação de segurança para garantir que todos os elementos foram encontrados
-    // Isso evita o erro "Cannot read properties of null" e ajuda a depurar
-    if (!form || !nomeInput || !emailInput || !senhaInput || !confirmeSenhaInput || !toastNotification) {
+    // --- VERIFICAÇÃO ATUALIZADA ---
+    if (!form || !nomeInput || !emailInput || !senhaInput || !confirmeSenhaInput || !schoolSelect || !toastNotification) {
         console.error("Erro Crítico: Um ou mais elementos do formulário não foram encontrados no DOM. Verifique os IDs no seu arquivo HTML (cadastro.html).");
-        // IDs esperados: 'cadastro-form', 'Nome', 'email', 'senha', 'confirme-senha', 'toast-notification'
+        // IDs esperados: 'cadastro-form', 'Nome', 'email', 'senha', 'confirme-senha', 'school-select', 'toast-notification'
         return; // Impede que o resto do script seja executado
     }
 
+    // --- NOVA FUNÇÃO: Buscar e popular escolas ---
+    const loadSchools = async () => {
+        try {
+            // Usa a rota pública que criamos
+            const response = await fetch('/api/users/schools');
+            if (!response.ok) {
+                throw new Error('Não foi possível carregar as escolas.');
+            }
+            const schools = await response.json();
+
+            // Limpa opções antigas (exceto a primeira "Carregando...")
+            schoolSelect.innerHTML = '<option value="" disabled selected>Selecione sua escola</option>';
+
+            if (schools.length === 0) {
+                 schoolSelect.innerHTML = '<option value="" disabled selected>Nenhuma escola cadastrada</option>';
+                 schoolSelect.disabled = true; // Desabilita se não houver escolas
+            } else {
+                 schools.forEach(school => {
+                    const option = document.createElement('option');
+                    option.value = school._id; // O valor será o ID da escola
+                    option.textContent = school.name; // O texto será o nome
+                    schoolSelect.appendChild(option);
+                });
+                schoolSelect.disabled = false; // Habilita o select
+            }
+
+        } catch (error) {
+            console.error('Erro ao carregar escolas:', error);
+            schoolSelect.innerHTML = '<option value="" disabled selected>Erro ao carregar escolas</option>';
+            schoolSelect.disabled = true;
+            showToast(error.message || 'Erro ao buscar escolas.', 'error');
+        }
+    };
+    // --- FIM DA NOVA FUNÇÃO ---
+
 
     // Adiciona um "ouvinte" para o evento de submissão do formulário
-    form.addEventListener('submit', (event) => {
+    form.addEventListener('submit', async (event) => { // Tornada async
         // Previne o comportamento padrão do formulário
         event.preventDefault();
 
@@ -30,10 +64,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = emailInput.value.trim();
         const senha = senhaInput.value.trim();
         const confirmeSenha = confirmeSenhaInput.value.trim();
+        const selectedSchoolId = schoolSelect.value; // NOVO: Pega o ID da escola selecionada
 
         // 1. Validação: Verifica se algum campo está vazio
-        if (!nome || !email || !senha || !confirmeSenha) {
-            showToast('Por favor, preencha todos os campos.', 'error');
+        // --- VALIDAÇÃO ATUALIZADA ---
+        if (!nome || !email || !senha || !confirmeSenha || !selectedSchoolId) {
+            let errorMessage = 'Por favor, preencha todos os campos.';
+            if (!selectedSchoolId) {
+                errorMessage = 'Por favor, selecione sua escola.';
+            }
+            showToast(errorMessage, 'error');
             return;
         }
 
@@ -42,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Por favor, insira um e-mail válido.', 'error');
             return;
         }
-        
+
         // 3. Validação: Verifica se a senha tem pelo menos 6 caracteres
         if (senha.length < 6) {
             showToast('A senha deve ter no mínimo 6 caracteres.', 'error');
@@ -58,40 +98,47 @@ document.addEventListener('DOMContentLoaded', () => {
         // Se todas as validações passarem...
         console.log('Validação bem-sucedida! Enviando dados...');
 
-        // AJUSTE: Mapeia os dados do formulário para o schema do Prisma
+        // Mapeia os dados do formulário para o schema do backend
         const dadosUsuario = {
-            name: nome, // 'nome' vira 'name'
+            name: nome,
             email: email,
-            password: senha // 'senha' vira 'password'
+            password: senha,
+            schoolId: selectedSchoolId // NOVO: Inclui o ID da escola
         };
-        
-        console.log(dadosUsuario);
 
-        // AJUSTE: Altera a URL para corresponder ao endpoint do backend
-        fetch('/api/users/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dadosUsuario),
-        })
-        .then(response => {
-            // Se o backend retornar um erro (ex: e-mail já existe), ele será tratado aqui
-            if (response.status === 409) { // 409 Conflict é um bom status para "usuário já existe"
-                 throw new Error('Este e-mail já está cadastrado.');
-            }
+        console.log('Dados a serem enviados:', dadosUsuario);
+
+        // Envia para o backend
+        try {
+            const response = await fetch('/api/users/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dadosUsuario),
+            });
+
+            const data = await response.json(); // Tenta ler a resposta JSON mesmo se não for OK
+
             if (!response.ok) {
-                throw new Error('Ocorreu um problema no cadastro. Tente novamente.');
+                // Usa a mensagem de erro específica do backend, se houver
+                throw new Error(data.message || `Erro ${response.status} no cadastro.`);
             }
-            return response.json();
-        })
-        .then(data => {
+
             console.log('Sucesso:', data);
-            showToast('Cadastro realizado com sucesso!', 'success');
+            showToast('Cadastro realizado com sucesso! Redirecionando para login...', 'success'); // MENSAGEM ATUALIZADA
             form.reset();
-        })
-        .catch((error) => {
-            console.error('Erro:', error);
+            // Limpa e recarrega as escolas no select após sucesso (opcional)
+             schoolSelect.innerHTML = '<option value="" disabled selected>Selecione sua escola</option>';
+             loadSchools();
+
+            // --- REDIRECIONAMENTO ADICIONADO ---
+            setTimeout(() => {
+                window.location.href = '/login'; // Redireciona para a página de login
+            }, 2000); // Aguarda 2 segundos para o usuário ler o toast
+
+        } catch (error) {
+            console.error('Erro no cadastro:', error);
             showToast(error.message || 'Não foi possível conectar ao servidor.', 'error');
-        });
+        }
     });
 
     /**
@@ -100,16 +147,10 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} type - 'error' ou 'success' para estilização.
      */
     function showToast(message, type = 'error') {
-        // Limpa qualquer timer anterior para evitar que o pop-up suma antes da hora
         clearTimeout(toastTimeout);
-
         toastNotification.textContent = message;
-        // Remove classes antigas e adiciona as novas
-        toastNotification.className = 'toast-notification'; // Reseta
-        toastNotification.classList.add(type); // Adiciona 'error' ou 'success'
-        toastNotification.classList.add('show'); // Adiciona 'show' para ativar a animação
-
-        // Define um timer para esconder o pop-up após 4 segundos
+        toastNotification.className = 'toast-notification';
+        toastNotification.classList.add(type, 'show');
         toastTimeout = setTimeout(() => {
             toastNotification.classList.remove('show');
         }, 4000);
@@ -124,6 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return regex.test(email);
     }
+
+    // --- NOVO: Chama a função para carregar as escolas ao iniciar a página ---
+    loadSchools();
 
 });
 

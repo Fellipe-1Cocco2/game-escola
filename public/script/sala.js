@@ -5,7 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const nomeCriadorHeader = document.getElementById('nome-criador-header');
     const codigoSalaDisplay = document.getElementById('codigo-sala-display');
     const btnCopiarCodigo = document.getElementById('btn-copiar-codigo');
-    const listaTarefas = document.getElementById('lista-tarefas');
+    
+    // --- MODIFICADO: Seletores de Tarefas ---
+    const listaTarefasAtivas = document.getElementById('lista-tarefas-ativas');
+    const listaTarefasEncerradas = document.getElementById('lista-tarefas-encerradas');
+    
     const listaAlunos = document.getElementById('lista-alunos');
     const listaEditores = document.getElementById('lista-editores');
     
@@ -45,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnAbrirModalAluno.addEventListener('click', () => modalNovoAluno.style.display = 'flex');
     btnAbrirModalVincular.addEventListener('click', () => modalVincularAluno.style.display = 'flex'); // Novo listener
 
-    // --- LÓGICA DAS ABAS ---
+    // --- LÓGICA DAS ABAS PRINCIPAIS ---
     tabLinks.forEach(link => {
         link.addEventListener('click', () => {
             const tabId = link.getAttribute('data-tab');
@@ -55,6 +59,22 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(`tab-${tabId}`).classList.add('active');
         });
     });
+
+    // --- NOVO: LÓGICA DAS SUB-ABAS (TAREFAS) ---
+    document.querySelectorAll('.sub-tab-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const subTabId = link.getAttribute('data-subtab');
+            
+            // Remove 'active' de todos os links e painéis irmãos
+            document.querySelectorAll('.sub-tab-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.sub-tab-pane').forEach(p => p.classList.remove('active'));
+            
+            // Adiciona 'active' ao link clicado e ao painel correspondente
+            link.classList.add('active');
+            document.getElementById(`sub-tab-${subTabId}`).classList.add('active');
+        });
+    });
+
 
     // --- FUNÇÕES DE RENDERIZAÇÃO ---
     const renderAlunos = (alunos, podeEditar) => {
@@ -84,32 +104,82 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     
+    // --- FUNÇÃO RENDERTAREFAS TOTALMENTE ATUALIZADA ---
     const renderTarefas = (tarefas) => {
-        listaTarefas.innerHTML = '';
+        // Limpa as listas
+        listaTarefasAtivas.innerHTML = '';
+        listaTarefasEncerradas.innerHTML = '';
+
         if (!tarefas || tarefas.length === 0) {
-            listaTarefas.innerHTML = '<div class="lista-item">Nenhuma tarefa cadastrada.</div>';
+            listaTarefasAtivas.innerHTML = '<div class="lista-item">Nenhuma tarefa cadastrada.</div>';
+            listaTarefasEncerradas.innerHTML = '<div class="lista-item">Nenhuma tarefa encerrada.</div>';
             return;
         }
+
+        const agora = new Date();
+        const tarefasAtivas = [];
+        const tarefasEncerradas = [];
+
+        // Separa as tarefas
         tarefas.forEach(tarefa => {
-            const item = document.createElement('a');
-            item.className = 'lista-item-link';
-            item.href = `/tarefa/${tarefa._id}/sala/${salaId}`;
+            let encerrada = false;
+            if (tarefa.dataFechamento) {
+                // Combina data e hora para uma comparação precisa
+                // Usa 23:59:59 como padrão se a hora não for fornecida
+                const horaEncerramento = tarefa.horaFechamento || '23:59:59';
+                const dataEncerramento = new Date(`${tarefa.dataFechamento.split('T')[0]}T${horaEncerramento}`);
+                
+                if (agora > dataEncerramento) {
+                    encerrada = true;
+                }
+            }
             
-            // Cria a estrutura interna do card da tarefa
-            const dataInfo = tarefa.dataFechamento 
+            if (encerrada) {
+                tarefasEncerradas.push(tarefa);
+            } else {
+                tarefasAtivas.push(tarefa);
+            }
+        });
+
+        // Função auxiliar para renderizar um item de tarefa
+        const criarItemTarefa = (tarefa) => {
+            const linkTarefa = document.createElement('a');
+            linkTarefa.className = 'lista-item-link';
+            linkTarefa.href = `/tarefa/${tarefa._id}/sala/${salaId}`;
+
+            const dataInfo = tarefa.dataFechamento
                 ? `Fecha em: ${new Date(tarefa.dataFechamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} às ${tarefa.horaFechamento || ''}`
                 : 'Sem data de fechamento';
 
-            item.innerHTML = `
+            // --- ADICIONADO: Span de aviso ---
+            const avisoSemPerguntas = (!tarefa.perguntas || tarefa.perguntas.length === 0)
+                ? '<span class="sem-perguntas-tag">⚠️ Sem Perguntas, não aparecerá para os alunos</span>'
+                : '';
+            // --- FIM ADIÇÃO ---
+
+            linkTarefa.innerHTML = `
                 <div class="lista-item-info">
-                    <span>${tarefa.titulo || 'Tarefa sem título'}</span>
-                    <small>${dataInfo}</small>
+                    <span>${tarefa.titulo || 'Tarefa sem título'} ${avisoSemPerguntas}</span> <small>${dataInfo}</small>
                 </div>
                 <div class="lista-item-arrow">&rarr;</div>
             `;
-            listaTarefas.appendChild(item);
-        });
+            return linkTarefa;
+        };
+
+        // Renderiza as tarefas ativas
+       if (tarefasAtivas.length === 0) listaTarefasAtivas.innerHTML = '<div class="lista-item">Nenhuma tarefa ativa.</div>';
+        else {
+            tarefasAtivas.sort((a, b) => (a.dataFechamento ? new Date(a.dataFechamento) : Infinity) - (b.dataFechamento ? new Date(b.dataFechamento) : Infinity));
+            tarefasAtivas.forEach(tarefa => listaTarefasAtivas.appendChild(criarItemTarefa(tarefa)));
+        }
+
+        if (tarefasEncerradas.length === 0) listaTarefasEncerradas.innerHTML = '<div class="lista-item">Nenhuma tarefa encerrada.</div>';
+        else {
+            tarefasEncerradas.sort((a, b) => new Date(b.dataFechamento) - new Date(a.dataFechamento));
+            tarefasEncerradas.forEach(tarefa => listaTarefasEncerradas.appendChild(criarItemTarefa(tarefa)));
+        }
     };
+    // --- FIM DA ATUALIZAÇÃO RENDERTAREFAS ---
     
     const renderEditores = (editores) => {
         listaEditores.innerHTML = '';
@@ -141,8 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const isEditor = isCriador || (salaAtual.editoresConvidados && salaAtual.editoresConvidados.some(e => e._id === professorLogado._id));
             nomeSalaHeader.textContent = salaAtual.num_serie;
             nomeCriadorHeader.textContent = `por ${salaAtual.criador ? salaAtual.criador.name : 'Desconhecido'}`;
-            codigoSalaDisplay.textContent = salaAtual._id;
+            codigoSalaDisplay.textContent = salaAtual.codigoCurto;
+            
+            // Chama a nova função renderTarefas
             renderTarefas(salaAtual.tarefas);
+            
             renderAlunos(salaAtual.alunos, isEditor);
             renderEditores(salaAtual.editoresConvidados);
             if (isCriador) {
@@ -159,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- EVENT LISTENERS ---
+    // --- EVENT LISTENERS (sem alterações, exceto o de copiar código) ---
     btnAbrirModalTarefa.addEventListener('click', () => modalNovaTarefa.style.display = 'flex');
     btnAbrirModalAluno.addEventListener('click', () => modalNovoAluno.style.display = 'flex');
     btnAbrirModalExcluirSala.addEventListener('click', () => modalExcluirSala.style.display = 'flex');
@@ -271,11 +344,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (redirectOnSuccess) {
                 setTimeout(() => window.location.href = '/dashboard', 1500);
             } else {
-                fetchSalaData();
+                fetchSalaData(); // Recarrega todos os dados da sala
             }
         } catch (error) {
-            showToast(error.message, 'error');
             console.error('Erro na requisição:', error);
+            if (error.status === 401) {
+                 showToast('Sua sessão expirou. Por favor, faça login novamente.', 'error');
+                 setTimeout(() => {
+                    window.location.href = '/login'; // Redireciona
+                 }, 2000);
+            } else {
+                 showToast(error.message || 'Ocorreu um erro na requisição.', 'error');
+            }
+            // --- FIM DA MODIFICAÇÃO ---
         }
     };
 
@@ -290,12 +371,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     };
     
-    if (nomeSalaHeader && listaAlunos && modalNovaTarefa) {
+    // --- ATUALIZADO: Verificação inicial ---
+    if (nomeSalaHeader && listaAlunos && modalNovaTarefa && listaTarefasAtivas && listaTarefasEncerradas) {
         fetchSalaData();
     } else {
         console.error("Erro crítico: Elementos essenciais não encontrados. Verifique os IDs no HTML.");
     }
-    // --- LÓGICA DO CHAT DE IA ---
+
+    // --- LÓGICA DO CHAT DE IA (sem alterações) ---
     const btnAbrirChatIA = document.getElementById('btn-abrir-chat-ia');
     const modalChatIA = document.getElementById('modal-chat-ia');
     const btnFecharChatIA = document.querySelector('#modal-chat-ia .btn-fechar-modal');
@@ -374,4 +457,3 @@ document.addEventListener('DOMContentLoaded', () => {
         btnEnviarChatIA.disabled = false;
     });
 });
-

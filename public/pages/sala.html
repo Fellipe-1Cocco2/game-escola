@@ -6,7 +6,7 @@
     <title>Gerenciar Sala</title>
     <link rel="stylesheet" href="../styles/sala.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -43,12 +43,24 @@
         <div class="tabs-content">
             <div id="tab-tarefas" class="tab-pane active">
                 <div class="tab-header">
-                    <h3>Tarefas Atuais</h3>
+                    <h3>Tarefas</h3>
                     <button id="btn-abrir-modal-tarefa" class="btn-adicionar" style="display: none;">+ Adicionar Tarefa</button>
                 </div>
-                <div id="lista-tarefas" class="lista">Nenhuma tarefa cadastrada.</div>
-            </div>
+                
+                <nav class="sub-tabs-nav">
+                    <button class="sub-tab-link active" data-subtab="ativas">Ativas</button>
+                    <button class="sub-tab-link" data-subtab="encerradas">Encerradas</button>
+                </nav>
 
+                <div class="sub-tabs-content">
+                    <div id="sub-tab-ativas" class="sub-tab-pane active">
+                        <div id="lista-tarefas-ativas" class="lista">Nenhuma tarefa ativa.</div>
+                    </div>
+                    <div id="sub-tab-encerradas" class="sub-tab-pane">
+                        <div id="lista-tarefas-encerradas" class="lista">Nenhuma tarefa encerrada.</div>
+                    </div>
+                </div>
+            </div>
             <div id="tab-alunos" class="tab-pane">
                 <div class="tab-header">
                     <h3>Alunos Cadastrados</h3>
@@ -82,11 +94,7 @@
             <form id="form-nova-tarefa">
                 <label for="titulo-tarefa">Título da Tarefa:</label>
                 <input type="text" id="titulo-tarefa" required>
-                <label for="data-fechamento-tarefa">Data de Fechamento:</label>
-                <input type="date" id="data-fechamento-tarefa">
-                <label for="hora-fechamento-tarefa">Hora de Fechamento:</label>
-                <input type="time" id="hora-fechamento-tarefa">
-                <div class="modal-actions">
+                <label for="data-fechamento-tarefa">Data de Fechamento:</label> <input type="date" id="data-fechamento-tarefa" required> <label for="hora-fechamento-tarefa">Hora de Fechamento:</label> <input type="time" id="hora-fechamento-tarefa" required> <div class="modal-actions">
                     <button type="button" class="btn-secondary btn-fechar-modal">Cancelar</button>
                     <button type="submit" class="btn-primary">Criar Tarefa</button>
                 </div>
@@ -157,7 +165,28 @@
             </div>
         </div>
     </div>
-    
+    <div id="modal-editar-tarefa" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Editar Tarefa</h2>
+            <form id="form-editar-tarefa">
+                <input type="hidden" id="id-tarefa-editar"> <label for="titulo-tarefa-editar">Título da Tarefa:</label>
+                <input type="text" id="titulo-tarefa-editar" required>
+                
+                <label for="data-fechamento-tarefa-editar">Data de Fechamento (opcional):</label>
+                <input type="date" id="data-fechamento-tarefa-editar">
+                
+                <label for="hora-fechamento-tarefa-editar">Hora de Fechamento (opcional):</label>
+                <input type="time" id="hora-fechamento-tarefa-editar">
+                
+                <p class="nota-modal">Deixe a data e hora em branco para reabrir a tarefa.</p>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary btn-fechar-modal">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div id="modal-chat-ia" class="modal-overlay" style="display: none;">
         <div class="modal-content modal-chat"> <div class="modal-header">
                 <h3>Assistente de IA</h3>

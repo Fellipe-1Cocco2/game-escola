@@ -16,7 +16,7 @@ body {
     overflow: hidden;
 }
 
-.img-sabidin{  
+.img-sabidin{
     width: 50%;
 }
 
@@ -83,7 +83,7 @@ body {
 .form-container {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1rem; /* Aumenta o espaço entre os campos */
 }
 
         /* Estilos para o pop-up flutuante (toast) */
@@ -117,25 +117,54 @@ body {
     background-color: #38a169; /* Verde */
 }
 
-.email-input, .senha-input, .nome-input {
-    font-size: 1.5rem;
-    height: 3.5rem;
+/* --- ESTILOS ATUALIZADOS E NOVOS --- */
+.email-input, .senha-input, .nome-input, .school-select-input { /* Adicionado school-select-input */
+    font-size: 1.1rem; /* Tamanho da fonte ligeiramente menor */
+    height: 3rem; /* Altura ligeiramente menor */
     background-color: var(--color-gray-50);
-    border: 2px solid var(--color-gray-200);
+    border: 1px solid var(--color-gray-200); /* Borda mais sutil */
     border-radius: 0.375rem;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, box-shadow 0.3s; /* Adicionada transição de sombra */
     width: 100%;
-    padding: 0 1rem;
+    padding: 0 0.75rem; /* Padding horizontal ligeiramente menor */
+}
+
+/* Estilo específico para o select parecer com os inputs */
+.school-select-input {
+    appearance: none; /* Remove a seta padrão */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E"); /* Adiciona seta customizada */
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em 1.25em;
+    padding-right: 2.5rem; /* Espaço para a seta */
+}
+
+/* Efeito de foco */
+.email-input:focus, .senha-input:focus, .nome-input:focus, .school-select-input:focus {
+    border-color: var(--color-purple-500);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2); /* Sombra roxa clara no foco */
 }
 
 .titulo{
     text-align: center;
+    margin-bottom: 1rem; /* Adiciona espaço abaixo do título */
+    color: var(--color-gray-800); /* Cor mais escura */
 }
 
-.game-code-input:focus {
-    border-color: var(--color-purple-500);
-    outline: none;
+/* Novo: Estilo para o form-group (label + select) */
+.form-group {
+    display: flex;
+    flex-direction: column;
 }
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-gray-600);
+    margin-bottom: 0.25rem; /* Espaço entre label e select */
+}
+/* --- FIM DOS ESTILOS ATUALIZADOS E NOVOS --- */
+
 
 .btn-primary {
     width: 100%;
@@ -144,6 +173,7 @@ body {
     color: var(--color-white);
     font-size: 1.125rem;
     font-weight: 600;
+    margin-top: 1rem; /* Adiciona espaço antes do botão */
 }
 
 .btn-primary:hover {
@@ -153,6 +183,18 @@ body {
 .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Novo: Link para login */
+.link-login {
+    text-align: center;
+    color: var(--color-purple-600);
+    font-size: 0.875rem;
+    text-decoration: none;
+    margin-top: 0.5rem; /* Espaço acima do link */
+}
+.link-login:hover {
+    text-decoration: underline;
 }
 
 .footer {
@@ -188,4 +230,3 @@ body {
         opacity: 0.4;
     }
 }
-

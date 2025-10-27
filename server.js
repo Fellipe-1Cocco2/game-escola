@@ -14,6 +14,7 @@ const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const gameRoutes = require('./routes/gameRoutes');
 const pageRoutes = require('./routesPages/pagesRoutes');
+const authAdminRoutes = require('./routes/authAdminRoutes');
 
 // Middleware
 app.use(cors());
@@ -27,6 +28,7 @@ app.use('/', pageRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/game', gameRoutes);
+app.use('/api/auth/admin', authAdminRoutes);
 
 // Middleware de tratamento de erros
 app.use((err, req, res, next) => {

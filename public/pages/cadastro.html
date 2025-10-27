@@ -3,31 +3,42 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sabidin - Entrar no Jogo</title>
+    <title>Sabidin - Cadastro Professor</title> <!-- Título ajustado -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../styles/cadastro.css">
+    <link rel="stylesheet" href="../styles/cadastro.css"> <!-- Reutiliza estilos -->
 </head>
 <body>
     <div class="main-container">
 
         <!-- Main Content -->
         <main class="content">
-            
+
             <div class="card-container">
                 <div class="container-img-sabidin">
-                    <img class="img-sabidin" src="../img/sabidin.png" alt="">
+                    <img class="img-sabidin" src="../img/sabidin.png" alt="Logo Sabidin">
                 </div>
                 <div class="card">
                     <div class="card-content">
-                        <form class="form-container" id="cadastro-form"> 
-                            <h1 class="titulo">Faça seu cadastro</h1>
-                            <input type="text" placeholder="Nome" id="Nome" class="nome-input">
-                            <input type="text" placeholder="E-mail" id="email" class="email-input">
-                            <input type="password" placeholder="Senha" id="senha" class="senha-input">
-                            <input type="password" placeholder="Confirme sua Senha" id="confirme-senha" class="senha-input">
+                        <form class="form-container" id="cadastro-form">
+                            <h1 class="titulo">Cadastro de Professor</h1>
+                            <input type="text" placeholder="Nome Completo" id="Nome" class="nome-input" required>
+                            <input type="email" placeholder="E-mail" id="email" class="email-input" required>
+                            <input type="password" placeholder="Senha (mín. 6 caracteres)" id="senha" class="senha-input" required minlength="6">
+                            <input type="password" placeholder="Confirme sua Senha" id="confirme-senha" class="senha-input" required>
+                            
+                            <!-- ========== NOVO SELETOR DE ESCOLA ========== -->
+                            <div class="form-group"> <!-- Grupo para label + select -->
+                                <label for="school-select">Escola:</label>
+                                <select id="school-select" class="school-select-input" required>
+                                    <option value="" disabled selected>Carregando escolas...</option>
+                                    <!-- Opções serão preenchidas via JS -->
+                                </select>
+                            </div>
+                            <!-- ========== FIM DO SELETOR DE ESCOLA ========== -->
                             <button type="submit" class="btn btn-primary">Cadastrar</button>
+                             <a href="/login" class="link-login">Já tem conta? Faça login</a> <!-- Link para login -->
                         </form>
                     </div>
                 </div>
@@ -50,4 +61,3 @@
     <script src="../script/cadastro.js"></script>
 </body>
 </html>
-
