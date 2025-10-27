@@ -5,10 +5,26 @@ const Pergunta = require('../models/Pergunta');
 const Aluno = require('../models/Aluno');
 const { customAlphabet } = require('nanoid');
 
+let gerarCodigoCurto;
+
+
 // Configuração da IA (deve vir após as importações)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-const gerarParteAleatoria = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 4);
+
+
+(async () => {
+  try {
+    const nanoidModule = await import('nanoid'); // Importa dinamicamente
+    // Atribui a função customAlphabet à variável
+    gerarCodigoCurto = nanoidModule.customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 4);
+    console.log('nanoid carregado com sucesso.'); // Log para confirmar
+  } catch (err) {
+    console.error('Erro ao carregar nanoid dinamicamente:', err);
+  }
+})();
+
+
 
 const removerPerguntaDaTarefa = async (req, res) => {
     try {
