@@ -3,7 +3,6 @@ const Sala = require('../models/Sala');
 const Professor = require('../models/Professor');
 const Pergunta = require('../models/Pergunta');
 const Aluno = require('../models/Aluno');
-const { customAlphabet } = require('nanoid');
 
 let gerarCodigoCurto;
 
