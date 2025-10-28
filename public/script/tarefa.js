@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- FIM DOS NOVOS SELETORES ---
 
     const fechamentoTarefaHeader = getElement('fechamento-tarefa-header', false);
-    
+    const btnExcluirTarefa = getElement('btn-excluir-tarefa', false);
     // Fechar Modais Genérico
     document.querySelectorAll('.btn-fechar-modal').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -87,6 +87,39 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetPane) targetPane.classList.add('active');
         });
     });
+
+    const handleExcluirTarefa = async () => {
+        // Pega os IDs que já estão sendo usados na página
+        if (!tarefaId || !salaId) {
+            showToast("Não foi possível identificar a tarefa ou sala para exclusão.", "error");
+            return;
+        }
+
+        // Confirmação com o usuário
+        if (confirm('Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.')) {
+            // Chama a API com o método DELETE
+            // O terceiro argumento 'null' é porque DELETE não tem corpo
+            // O quarto argumento é a mensagem de sucesso
+            const result = await sendRequest(
+                `/api/game/salas/${salaId}/tarefas/${tarefaId}`,
+                'DELETE',
+                null,
+                'Tarefa excluída com sucesso!'
+                // Adicionamos um quinto argumento para indicar redirecionamento
+                // true // (Opcional, se sua função sendRequest suportar)
+            );
+
+            // Se a exclusão foi bem-sucedida (result não é null/falso)
+            if (result) {
+                // Redireciona de volta para a página da sala
+                 showToast('Redirecionando para a sala...', 'info'); // Adiciona feedback
+                setTimeout(() => {
+                    window.location.href = `/sala/${salaId}`;
+                }, 1500); // Aguarda um pouco para o toast ser visto
+            }
+            // Se falhou, o sendRequest já deve ter mostrado um toast de erro
+        }
+    };
 
     // --- FUNÇÕES DE RENDERIZAÇÃO ---
     const renderPerguntasDaTarefa = (perguntas) => {
@@ -551,59 +584,84 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    if (btnExcluirTarefa) {
+        btnExcluirTarefa.addEventListener('click', handleExcluirTarefa);
+    }
 
     // --- FUNÇÃO AUXILIAR E INICIALIZAÇÃO ---
-    const sendRequest = async (url, method, body, successMsg) => {
+    const sendRequest = async (url, method, body, successMsg, redirectOnSuccessUrl = null) => {
         const token = localStorage.getItem('token');
         try {
             const options = {
                 method,
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                headers: { 'Authorization': `Bearer ${token}` }, // Content-Type não é necessário para DELETE sem corpo
                 body: body ? JSON.stringify(body) : null
             };
-            const response = await fetch(url, options);
-            const data = await response.json();
+            // Adiciona Content-Type apenas se houver corpo
+            if (body) {
+                options.headers['Content-Type'] = 'application/json';
+            }
 
-            if (!response.ok) {
-                 if (response.status === 409) {
-                    throw { status: 409, message: data.message || 'Ação bloqueada (conflito).' };
-                } else {
-                    throw new Error(data.message || 'Ocorreu um erro.');
+            const response = await fetch(url, options);
+
+            // Para DELETE, 200 OK ou 204 No Content são sucesso
+            if (method === 'DELETE' && (response.status === 200 || response.status === 204)) {
+                showToast(successMsg, 'success');
+                if (redirectOnSuccessUrl) {
+                    showToast('Redirecionando...', 'info');
+                    setTimeout(() => window.location.href = redirectOnSuccessUrl, 1500);
                 }
+                return true; // Indica sucesso para DELETE
+            }
+
+            // Tratamento normal para outros métodos ou erros no DELETE
+            const data = await response.json();
+            if (!response.ok) {
+                 // ... seu tratamento de erro existente ...
+                 throw new Error(data.message || 'Ocorreu um erro.');
             }
 
             showToast(successMsg, 'success');
 
+            // --- LÓGICA DE REDIRECIONAMENTO PARA OUTROS MÉTODOS ---
+            if (redirectOnSuccessUrl && method !== 'DELETE') {
+                 showToast('Redirecionando...', 'info');
+                 setTimeout(() => window.location.href = redirectOnSuccessUrl, 1500);
+            }
+            // --- FIM LÓGICA REDIRECIONAMENTO ---
+
+
+            // --- SUA LÓGICA EXISTENTE DE ATUALIZAÇÃO DE DADOS ---
             if (method === 'PUT' && url.includes('/tarefas/')) {
-                 if (tituloTarefaHeader && data.titulo) tituloTarefaHeader.textContent = data.titulo; 
-                 fetchData(); 
-            } else if (method === 'POST' && url.includes('/perguntas') || method === 'DELETE' || (method === 'POST' && url.includes('/banco-perguntas'))) {
-                 // Após adicionar/remover pergunta, recarrega os dados
+                 if (tituloTarefaHeader && data.titulo) tituloTarefaHeader.textContent = data.titulo;
                  fetchData();
-            } else if (data && data._id && data.perguntas !== undefined) { 
-                 // Caso específico de retorno após criar pergunta (não deveria mais acontecer?)
+            } else if (method === 'POST' && url.includes('/perguntas') || method === 'DELETE' || (method === 'POST' && url.includes('/banco-perguntas'))) {
+                 fetchData();
+            } else if (data && data._id && data.perguntas !== undefined) {
                  tarefaAtual = data;
                  renderPerguntasDaTarefa(tarefaAtual.perguntas);
                  renderResultados(tarefaAtual.resultadosCompletos, (tarefaAtual.perguntas || []).length);
-            } else {
-                 fetchData(); 
+            } else if (method !== 'DELETE') { // Não recarrega dados se for DELETE (pois vamos redirecionar)
+                 fetchData();
             }
+            // --- FIM LÓGICA ATUALIZAÇÃO ---
+
+            return data; // Retorna dados para outros métodos
 
         } catch (error) {
-             console.error('Erro detalhado capturado:', error);
+             // ... seu catch existente ...
+              console.error('Erro detalhado capturado:', error);
              if (error.status === 401) {
-                 showToast('Sua sessão expirou. Por favor, faça login novamente.', 'error');
-                 setTimeout(() => {
-                     window.location.href = '/login'; // Redireciona
-                 }, 2000);
-            } else if (error && error.status === 409) { // Mantém tratamento do 409
-                showToast(error.message, 'info');
-            } else {
-                showToast(error.message || 'Ocorreu um erro desconhecido.', 'error');
-            }
+                  showToast('Sua sessão expirou. Por favor, faça login novamente.', 'error');
+                  setTimeout(() => { window.location.href = '/login'; }, 2000);
+             } else if (error && error.status === 409) {
+                 showToast(error.message, 'info');
+             } else {
+                 showToast(error.message || 'Ocorreu um erro desconhecido.', 'error');
+             }
+             return null; // Indica erro
         }
     };
-
     const showToast = (message, type = 'success') => { 
         if (!toastNotification) return; // Não tenta mostrar se não existe
         clearTimeout(toastTimeout);

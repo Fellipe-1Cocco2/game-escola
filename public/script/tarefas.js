@@ -15,8 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const alunoId = sessionStorage.getItem('aluno_id');
     const salaId = sessionStorage.getItem('sala_id_atual');
 
+    const rankingListaEl = document.getElementById('ranking-lista');
+
     // Validação inicial
-    if (!nomeAlunoEl || !listaTarefasEl || !btnSair || !btnConfig || !modalConfig) {
+    if (!nomeAlunoEl || !listaTarefasEl || !btnSair || !btnConfig || !modalConfig || !rankingListaEl) { // Adicionado rankingListaEl
         console.error("Erro crítico: Elementos essenciais não foram encontrados.");
         return;
     }
@@ -56,6 +58,64 @@ document.addEventListener('DOMContentLoaded', () => {
             modalConfig.classList.add('hidden');
         }
     });
+
+
+    const buscarERenderizarRanking = async () => {
+         // Verifica se o elemento existe antes de tentar buscar
+         if (!rankingListaEl) {
+              console.warn("Elemento ranking-lista não encontrado, pulando busca do ranking.");
+              return;
+         }
+        try {
+            // Usa a nova rota da API
+            const response = await fetch(`/api/game/salas/${salaId}/ranking`);
+            if (!response.ok) {
+                throw new Error('Não foi possível buscar o ranking.');
+            }
+            const ranking = await response.json();
+            renderizarRanking(ranking);
+        } catch (error) {
+            console.error("Erro ao buscar ranking:", error);
+            if (rankingListaEl) { // Verifica de novo antes de escrever
+                 rankingListaEl.innerHTML = '<p>Erro ao carregar o ranking.</p>';
+            }
+        }
+    };
+
+    const renderizarRanking = (ranking) => {
+        if (!rankingListaEl) return;
+        rankingListaEl.innerHTML = ''; // Limpa "Carregando..."
+
+        if (!ranking || ranking.length === 0) {
+            rankingListaEl.innerHTML = '<p>Ninguém pontuou ainda!</p>';
+            return;
+        }
+
+        ranking.forEach((aluno, index) => {
+            const item = document.createElement('div');
+            item.className = 'ranking-item';
+
+            // Adiciona destaque se for o aluno logado
+            if (aluno.alunoId === alunoId) {
+                item.style.backgroundColor = '#eff6ff'; // Azul claro
+                item.style.fontWeight = 'bold';
+            }
+
+            // Define a posição (1º, 2º, 3º...)
+            let posicao = `${index + 1}º`;
+            if (index === 0) posicao = '🥇'; // Ouro
+            else if (index === 1) posicao = '🥈'; // Prata
+            else if (index === 2) posicao = '🥉'; // Bronze
+
+            item.innerHTML = `
+                <span class="ranking-posicao">${posicao}</span>
+                <span class="ranking-nome">${aluno.nome || 'Aluno Desconhecido'}</span>
+                <span class="ranking-pontos">${aluno.pontuacaoTotal} pts</span>
+            `;
+            rankingListaEl.appendChild(item);
+        });
+    };
+
 
     // Função para renderizar as tarefas na tela
     const renderizarTarefas = (tarefas) => {
@@ -159,4 +219,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicia a busca dos dados ao carregar a página
     buscarTarefasAtualizadas();
+    buscarERenderizarRanking();
 });

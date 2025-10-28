@@ -183,6 +183,23 @@ body.admin-dashboard-bg {
     background-color: var(--admin-edit-color);
     color: white;
 }
+.btn-edit{
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-right: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+
+
+
 .btn-edit:hover, .btn-edit-admin:hover {
     background-color: var(--admin-edit-hover);
 }
@@ -340,3 +357,118 @@ body.admin-dashboard-bg {
     .card-header-flex { display: flex; justify-content: space-between; align-items: center; }
     .header-link { color: inherit; text-decoration: none; }
     .header-link:hover { text-decoration: underline; }
+
+.card-header-flex .btn-edit,
+.card-header-flex .btn-add { /* Aplica ao .btn-add também se necessário */
+    display: inline-flex; /* Essencial para alinhar icon e texto */
+    align-items: center; /* Alinha verticalmente */
+    gap: 0.5rem; /* Espaço entre ícone e texto (ajuste se preferir) */
+    /* Você pode ajustar o padding se o botão parecer muito grande/pequeno */
+    /* padding: 0.5rem 0.8rem; */
+}
+
+.card-header-flex .btn-edit svg,
+.card-header-flex .btn-add svg {
+     width: 16px; /* Ou o tamanho desejado */
+     height: 16px;
+}
+
+    .modal-lg {
+    max-width: 800px; /* Modal maior para detalhes */
+}
+
+.modal-body {
+    max-height: 65vh; /* Limita altura do corpo */
+    overflow-y: auto; /* Adiciona scroll se necessário */
+    padding: 1rem 0; /* Espaçamento vertical */
+}
+
+.modal-body h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    border-top: 1px solid var(--admin-border-color);
+    padding-top: 1rem;
+}
+
+/* Lista de perguntas dentro do modal de detalhes */
+.lista-perguntas-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.pergunta-item-modal {
+    background-color: #f9fafb; /* Fundo cinza claro */
+    border: 1px solid var(--admin-border-color);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pergunta-item-modal span {
+    flex-grow: 1; /* Ocupa espaço */
+    padding-right: 1rem; /* Espaço antes do botão */
+    overflow: hidden; /* Evita quebra de linha */
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-delete-inline {
+    background: none;
+    border: none;
+    color: var(--admin-danger-color);
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+}
+.btn-delete-inline:hover {
+    color: var(--admin-danger-hover);
+}
+.btn-delete-inline svg {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle; /* Alinha o ícone */
+}
+
+/* Formulário inline para adicionar colaborador */
+.form-inline-add {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    align-items: center;
+}
+.form-inline-add input[type="email"] {
+    flex-grow: 1; /* Ocupa espaço */
+    padding: 0.5rem 0.8rem; /* Padding menor */
+    border: 1px solid var(--admin-border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+.btn-add-inline {
+    background-color: var(--admin-primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem; /* Padding quadrado */
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1; /* Para alinhar o ícone */
+}
+.btn-add-inline:hover {
+    background-color: var(--admin-primary-hover);
+}
+.btn-add-inline svg {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+}
+
+.tabs-nav { display: flex; border-bottom: 2px solid var(--admin-border-color); margin-bottom: 2rem; }
+        .tab-link { padding: 0.8rem 1.5rem; cursor: pointer; border: none; background-color: transparent; font-size: 1rem; font-weight: 600; color: var(--admin-text-light); position: relative; top: 2px; border-bottom: 2px solid transparent; margin-bottom: -2px;}
+        .tab-link.active { color: var(--admin-primary-color); border-bottom-color: var(--admin-primary-color); }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; margin-bottom: 1rem;}

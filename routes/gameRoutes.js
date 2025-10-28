@@ -10,7 +10,7 @@ const {
     criarPerguntaParaTarefa, getBancoDePerguntas, adicionarPerguntaDoBanco,
     salvarProgressoAluno,
     cadastrarEAdicionarAluno, // Função de cadastro
-    vincularAlunoExistente, gerarTarefaComIA, removerPerguntaDaTarefa // Função de vínculo
+    vincularAlunoExistente, gerarTarefaComIA, removerPerguntaDaTarefa, excluirTarefa, importarAlunos, getRankingDaSala
 } = require('../controllers/gameController');
 
 // --- ROTAS DE SALA ---
@@ -23,13 +23,17 @@ router.post('/aluno/login', alunoLogin);
 router.post('/salas/:salaId/alunos', protect, cadastrarEAdicionarAluno); // Rota para CADASTRAR
 router.put('/salas/:salaId/alunos/vincular', protect, vincularAlunoExistente); // Rota para VINCULAR
 router.route('/salas/:salaId/alunos/:alunoId').put(protect, atualizarAluno).delete(protect, excluirAluno);
+router.post('/salas/:salaId/alunos/importar', protect, importarAlunos);
+
+router.get('/salas/:salaId/ranking', getRankingDaSala);
 
 // --- ROTAS DE TAREFA ---
 router.post('/salas/:salaId/tarefas', protect, adicionarTarefa);
 router.get('/salas/:salaId/tarefas', getTarefasDaSala); // Busca todas as tarefas da sala
 router.route('/salas/:salaId/tarefas/:tarefaId')
     .get(protect, getTarefaDetalhes) // Busca detalhes de UMA tarefa
-    .put(protect, atualizarTarefa); // <-- NOVA ROTA PUT PARA ATUALIZAR TAREFA
+    .put(protect, atualizarTarefa)
+    .delete(protect, excluirTarefa)
 
 // --- ROTAS DE PERGUNTAS ---
 router.get('/perguntas', protect, getBancoDePerguntas);

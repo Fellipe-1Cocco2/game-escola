@@ -210,17 +210,47 @@ body {
 
 /* Estilo do cabeçalho do modal */
 .modal-chat .modal-header {
-    display: flex; /* Garante alinhamento */
-    justify-content: space-between; /* Título à esquerda, X à direita */
+    display: flex;
+    justify-content: space-between;
     align-items: center; /* Alinha verticalmente */
     border-bottom: 1px solid var(--cor-borda);
     padding-bottom: 1rem;
     margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.modal-content .btn-close {
+    background: none;           /* Remove fundo padrão */
+    border: none;               /* Remove borda padrão */
+    padding: 0.25rem 0.5rem;     /* Pequeno padding para área de clique */
+    margin: 0;                  /* Remove margens padrão */
+    font-size: 1.8rem;          /* Tamanho do 'X' (ajuste se necessário) */
+    font-weight: bold;          /* Deixa o 'X' mais visível */
+    line-height: 1;             /* Ajuda no alinhamento vertical */
+    color: var(--cor-texto-secundario, #9ca3af); /* Usa variável de cor cinza (com fallback) */
+    cursor: pointer;
+    transition: color 0.2s ease; /* Efeito suave no hover */
+}
+
+/* Efeito Hover */
+.modal-content .btn-close:hover {
+    color: var(--cor-texto-titulo, #111827); /* Cor mais escura no hover (com fallback) */
+}
+
+.modal-header h2 { /* Título */
+    display: flex;
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--cor-texto-titulo);
+    width: 80%;
 }
 .modal-chat .modal-header h3 {
     margin: 0; /* Remove margem padrão do h3 */
     font-size: 1.25rem; /* Ajusta tamanho do título */
 }
+
+
+
 
 /* Estilo para o botão de fechar (X) */
 .modal-chat .btn-fechar-modal {
@@ -486,3 +516,147 @@ body {
     margin-left: 0.5rem; /* Espaço do título */
     vertical-align: middle; /* Alinha verticalmente com o texto */
 }
+
+.modal-importar {
+    max-width: 600px;
+}
+
+/* Garante espaçamento entre os grupos de formulário */
+#form-importar-alunos .form-group {
+    margin-bottom: 1.5rem; /* Aumenta o espaço entre o input de arquivo e o checkbox */
+}
+
+/* --- ESTILIZAÇÃO MELHORADA PARA O INPUT DE ARQUIVO --- */
+/* Esconde o input de arquivo padrão (mas mantém funcional) */
+.input-arquivo {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+    width: 0.1px;
+    height: 0.1px;
+    overflow: hidden;
+}
+
+/* Estiliza o LABEL como se fosse o botão/área de clique */
+label[for="input-arquivo-alunos"] {
+    display: block; /* Ocupa a linha toda */
+    padding: 1rem 1.5rem;
+    border: 2px dashed var(--cor-borda); /* Borda tracejada mais visível */
+    border-radius: 8px;
+    background-color: var(--cor-fundo-pagina);
+    color: var(--cor-texto-corpo);
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 0.5rem; /* Espaço antes do texto <small> */
+}
+label[for="input-arquivo-alunos"]:hover {
+    border-color: var(--cor-principal);
+    background-color: #f5f3ff; /* Fundo roxo claro no hover */
+    color: var(--cor-principal);
+}
+
+/* Estilo para o texto <small> abaixo do input */
+#form-importar-alunos .form-group small {
+    display: block; /* Garante que fique abaixo */
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--cor-texto-secundario);
+}
+
+/* --- CORREÇÃO PARA O CHECKBOX --- */
+.form-group-checkbox {
+    display: flex; /* Mantém flex */
+    align-items: center; /* Alinha verticalmente */
+    gap: 0.75rem; /* Espaço entre checkbox e label */
+    margin: 1.5rem 0; /* Aumenta margem vertical */
+    padding-left: 5px; /* Pequeno recuo para alinhar visualmente */
+}
+
+/* Remove margens padrão que podem atrapalhar */
+.form-group-checkbox input[type="checkbox"] {
+    margin: 0;
+    width: 18px; /* Tamanho do checkbox */
+    height: 18px;
+    flex-shrink: 0; /* Impede que encolha */
+}
+
+.form-group-checkbox label {
+    margin: 0; /* Remove margem padrão */
+    font-size: 0.95rem; /* Ajuste tamanho se necessário */
+    font-weight: 500;
+    color: var(--cor-texto-corpo);
+    cursor: pointer;
+}
+
+
+/* --- AJUSTES FINAIS NO MODAL --- */
+/* Garante espaçamento antes dos botões de ação */
+#form-importar-alunos .modal-actions {
+    margin-top: 2rem;
+}
+
+/* Esconde o preview e loading inicialmente (já deve ter .hidden) */
+.preview-container.hidden,
+.loading-container.hidden {
+    display: none !important;
+}
+/* Estilos da Pré-visualização */
+.preview-container {
+    margin-top: 1.5rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f9fafb;
+    max-height: 250px; /* Limita altura */
+    overflow-y: auto; /* Adiciona scroll se necessário */
+}
+.preview-container h4 {
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: var(--cor-texto-titulo);
+}
+.preview-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.preview-tabela th, .preview-tabela td {
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem;
+    text-align: left;
+}
+.preview-tabela th {
+    background-color: #e5e7eb;
+    font-weight: 600;
+}
+.preview-contador {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: right;
+}
+
+/* Estilos do Loading */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
+    color: var(--cor-texto-secundario);
+}
+.loader { /* Estilo simples de loader */
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--cor-borda);
+    border-top-color: var(--cor-principal);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Utilitário Hidden (se já não existir) */
+.hidden { display: none !important; }

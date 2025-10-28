@@ -8,14 +8,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body>
     <header class="header">
         <div class="header-content">
             <h1 id="welcome-message">Bem-vindo(a), <span id="nome-professor">...</span>!</h1>
-            <!-- Botão de sair agora tem uma classe específica para o estilo de perigo -->
-            <button id="btn-logout" class="btn-logout btn-danger">Sair</button>
-        </div>
+            <div class="header-actions">
+                <button id="btn-abrir-modal-perfil" class="btn-icon" title="Editar Perfil">
+                    <i data-feather="settings"></i>
+                </button>
+                <button id="btn-logout" class="btn-logout btn-danger">Sair</button>
+            </div>
+            </div>
     </header>
 
     <main class="container">
@@ -24,11 +29,9 @@
             <button id="btn-abrir-modal" class="btn-primary">Criar Nova Sala</button>
         </div>
         <div id="lista-salas" class="salas-grid">
-            <!-- Os cards das salas serão inseridos aqui pelo JavaScript -->
-        </div>
+            </div>
     </main>
 
-    <!-- Modal para Criar Nova Sala (sem alterações) -->
     <div id="modal-nova-sala" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -40,6 +43,11 @@
                     <label for="select-ano-serie">Ano/Série</label>
                     <select id="select-ano-serie" required>
                         <option value="" disabled selected>Selecione o Ano/Série</option>
+                        <option value="Infantil 1">Infantil 1</option>
+                        <option value="Infantil 2">Infantil 2</option>
+                        <option value="Infantil 3">Infantil 3</option>
+                        <option value="Infantil 4">Infantil 4</option>
+                        <option value="Infantil 5">Infantil 5</option>
                         <option value="1º ano">1º ano</option>
                         <option value="2º ano">2º ano</option>
                         <option value="3º ano">3º ano</option>
@@ -74,8 +82,45 @@
         </div>
     </div>
 
+    <div id="modal-editar-perfil" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Perfil</h3>
+                <button id="btn-fechar-modal-perfil" class="btn-close">&times;</button>
+            </div>
+
+            <form id="form-editar-nome" class="form-section">
+                <h4>Alterar Nome</h4>
+                <div class="form-group">
+                    <label for="nome-perfil">Nome</label>
+                    <input type="text" id="nome-perfil" required>
+                </div>
+                <button type="submit" class="btn-primary">Salvar Nome</button>
+            </form>
+
+            <hr class="section-divider"> <form id="form-alterar-senha" class="form-section">
+                <h4>Alterar Senha</h4>
+                <div class="form-group">
+                    <label for="senha-atual">Senha Atual</label>
+                    <input type="password" id="senha-atual" required>
+                </div>
+                <div class="form-group">
+                    <label for="nova-senha">Nova Senha (mín. 6 caracteres)</label>
+                    <input type="password" id="nova-senha" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirmar-nova-senha">Confirmar Nova Senha</label>
+                    <input type="password" id="confirmar-nova-senha" required minlength="6">
+                </div>
+                <button type="submit" class="btn-primary">Alterar Senha</button>
+            </form>
+
+        </div>
+    </div>
     <div id="toast-notification" class="toast-notification"></div>
     <script src="../script/dashboard.js"></script>
+    <script>
+      feather.replace()
+    </script>
 </body>
 </html>
-

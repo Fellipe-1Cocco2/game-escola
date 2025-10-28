@@ -38,6 +38,7 @@ router.get('/admin/login', servePage('admin-login')); // Página de login do Adm
 router.get('/admin/dashboard', servePage('admin-dashboard')); // Dashboard principal do Admin
 // --- NOVA ROTA DE DETALHES ---
 router.get('/admin/schools/:schoolId/details', servePage('admin-school-details')); // Detalhes da Escola
+router.get('/admin/salas/:salaId/details', servePage('admin-sala-details')); // Detalhes da Sala (Admin)
 // Futuramente: rotas como /admin/salas/:salaId/details, etc.
 
 module.exports = router;

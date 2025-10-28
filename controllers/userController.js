@@ -1,7 +1,8 @@
 const Professor = require('../models/Professor');
-const School = require('../models/School'); // Importa o modelo School
+const School = require('../models/School');
 const jwt = require('jsonwebtoken');
 
+// ... (registerUser, loginUser, getMe, getSchoolsForRegistration existentes) ...
 const registerUser = async (req, res) => {
     // --- ALTERAÇÃO: Recebe 'schoolId' do frontend ---
     const { name, email, password, schoolId } = req.body;
@@ -99,6 +100,7 @@ const loginUser = async (req, res) => {
 const getMe = async (req, res) => {
     // Busca o professor novamente para popular a escola
      try {
+        // O ID do professor já está em req.professor._id graças ao middleware 'protect'
         const professor = await Professor.findById(req.professor._id).populate('school', 'name');
         if (!professor) {
              return res.status(404).json({ message: 'Professor não encontrado.' });
@@ -125,9 +127,94 @@ const getSchoolsForRegistration = async (req, res) => {
     }
 };
 
+// ****** NOVAS FUNÇÕES ******
+
+/**
+ * Atualiza o nome do professor logado.
+ */
+const updateProfile = async (req, res) => {
+    const { name } = req.body;
+
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ message: 'O nome não pode ser vazio.' });
+    }
+
+    try {
+        // O middleware 'protect' já buscou o professor e o colocou em req.professor
+        const professor = await Professor.findById(req.professor._id);
+
+        if (!professor) {
+            return res.status(404).json({ message: 'Professor não encontrado.' });
+        }
+
+        professor.name = name.trim();
+        await professor.save();
+
+        // Retorna os dados atualizados (sem senha)
+        res.status(200).json({
+            _id: professor._id,
+            name: professor.name,
+            email: professor.email,
+            // Popula a escola se necessário (opcional aqui)
+            // school: await School.findById(professor.school).select('name')
+        });
+
+    } catch (error) {
+        console.error('Erro ao atualizar perfil:', error);
+        res.status(500).json({ message: 'Erro interno no servidor ao atualizar o perfil.' });
+    }
+};
+
+/**
+ * Atualiza a senha do professor logado.
+ */
+const updatePassword = async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    // Validações básicas
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Senha atual e nova senha são obrigatórias.' });
+    }
+    if (newPassword.length < 6) {
+        return res.status(400).json({ message: 'A nova senha deve ter no mínimo 6 caracteres.' });
+    }
+
+    try {
+        // Busca o professor INCLUINDO a senha para poder comparar
+        const professor = await Professor.findById(req.professor._id).select('+password');
+
+        if (!professor) {
+            // Isso não deveria acontecer se o middleware 'protect' funcionou
+            return res.status(404).json({ message: 'Professor não encontrado.' });
+        }
+
+        // Verifica se a senha atual fornecida está correta
+        const isMatch = await professor.matchPassword(currentPassword);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Senha atual incorreta.' });
+        }
+
+        // Define a nova senha (o hook pre('save') no modelo Professor fará o hash)
+        professor.password = newPassword;
+        await professor.save();
+
+        // Apenas envia mensagem de sucesso, sem dados do professor
+        res.status(200).json({ message: 'Senha alterada com sucesso.' });
+
+    } catch (error) {
+        console.error('Erro ao alterar senha:', error);
+        res.status(500).json({ message: 'Erro interno no servidor ao alterar a senha.' });
+    }
+};
+
+// ****** FIM NOVAS FUNÇÕES ******
+
+
 module.exports = {
     registerUser,
     loginUser,
     getMe,
-    getSchoolsForRegistration // Exporta a nova função
+    getSchoolsForRegistration,
+    updateProfile,  // <-- Exporta a nova função
+    updatePassword  // <-- Exporta a nova função
 };

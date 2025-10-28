@@ -8,7 +8,7 @@ const alunoSchema = new mongoose.Schema({
     RA: {
         type: String,
         required: [true, 'O RA do aluno é obrigatório.'],
-        unique: true // Garante que não haverá dois alunos com o mesmo RA
+        // unique: true // <-- REMOVA OU COMENTE ESTA LINHA
     }
 }, {
     timestamps: true

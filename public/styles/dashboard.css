@@ -20,6 +20,93 @@ body {
     margin: 0;
 }
 
+.btn-icon {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--cor-branco);
+    width: 40px; /* Largura e altura iguais */
+    height: 40px;
+    border-radius: 6px; /* Mesma borda dos outros botões */
+    display: flex; /* Para centralizar o ícone */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    padding: 0; /* Remove padding interno */
+}
+
+.btn-icon:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-icon svg {
+    width: 20px; /* Tamanho do ícone */
+    height: 20px;
+    stroke-width: 2; /* Espessura do ícone */
+}
+
+
+/* Layout dentro do Modal de Perfil */
+.form-section {
+    margin-bottom: 1.5rem;
+}
+.form-section:last-of-type {
+    margin-bottom: 0;
+}
+.form-section h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--cor-principal);
+}
+
+/* Divisor entre seções */
+.section-divider {
+    border: none;
+    border-top: 1px solid var(--cor-borda);
+    margin: 2rem 0; /* Aumenta o espaço */
+}
+
+/* Ajuste no botão dentro do modal */
+#modal-editar-perfil .btn-primary {
+    width: auto; /* Botão não ocupa a largura toda */
+    padding: 0.6rem 1.2rem; /* Padding menor */
+    margin-top: 0.5rem;
+}
+
+/* Input do modal (reutiliza, mas garante especificidade se necessário) */
+#modal-editar-perfil input[type="text"],
+#modal-editar-perfil input[type="password"] {
+     width: 100%;
+     padding: 0.75rem;
+     border: 1px solid #ccc;
+     border-radius: 4px;
+     font-size: 1rem;
+}
+
+/* ****** FIM NOVOS ESTILOS ****** */
+
+/* Ajuste para o botão de logout (para combinar com o novo botão de ícone) */
+.btn-logout {
+    padding: 0.6rem 1rem; /* Ajusta padding se necessário */
+    height: 40px; /* Mesma altura */
+}
+
+/* Mensagem de erro (pode ser útil) */
+.error-message {
+    color: var(--cor-perigo);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* Espaço entre botões */
+}
+
 /* Header Roxo */
 .header {
     background-color: var(--cor-principal);

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Sala - Admin Sabidin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/admin.css"> <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="admin-dashboard-bg">
+    <header class="admin-header">
+        <div class="header-content">
+            <h1>
+                <a href="/admin/dashboard" class="header-link">Painel Administrativo</a> /
+                <a href="#" id="breadcrumb-school-link" class="header-link">Escola</a> / Detalhes da Sala
+            </h1>
+            <div class="admin-user-info">
+                <span id="admin-name">Admin</span>
+                <button id="btn-logout" class="btn-logout-admin">
+                    <i data-feather="log-out"></i> Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main style="max-width: 1400px; margin: 2rem auto; padding: 0 2rem;"> 
+        <section class="admin-card mb-6">
+             <div class="card-header-flex">
+                 <h2 id="sala-name-header">Carregando sala...</h2>
+                 <button class= "btn-edit btn-edit-aluno" id="btn-edit-sala-name"><i data-feather="edit-2"></i> Editar Nome</button>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Criador:</strong> <span id="sala-creator-name">...</span>
+                </div>
+                <div class="info-item">
+                    <strong>Código:</strong> <span id="sala-shortcode" class="font-mono bg-gray-100 px-2 py-1 rounded">...</span>
+                </div>
+                 <div class="info-item">
+                    <strong>Escola:</strong> <span id="sala-school-name">Carregando...</span>
+                </div>
+            </div>
+        </section> <nav class="tabs-nav">
+            <button class="tab-link active" data-tab="alunos">Alunos</button>
+            <button class="tab-link" data-tab="tarefas">Tarefas</button>
+            <button class="tab-link" data-tab="colaboradores">Colaboradores</button>
+        </nav>
+
+        <div class="tabs-content">
+
+            <div id="tab-alunos" class="tab-pane active">
+                <section class="admin-card">
+                     <div class="card-header-flex mb-4">
+                        <h2>Alunos da Sala</h2>
+                         </div>
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>RA</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alunos-table-body">
+                                <tr><td colspan="3" class="loading-text">Carregando alunos...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <div id="tab-tarefas" class="tab-pane">
+                 <section class="admin-card">
+                     <div class="card-header-flex mb-4">
+                        <h2>Tarefas da Sala</h2>
+                         </div>
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                           <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Nº Perguntas</th>
+                                    <th>Data Fechamento</th>
+                                    <th>Hora Fechamento</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tarefas-table-body">
+                                <tr><td colspan="5" class="loading-text">Carregando tarefas...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                 </section>
+            </div>
+
+             <div id="tab-colaboradores" class="tab-pane">
+                <section class="admin-card">
+                     <div class="card-header-flex mb-4">
+                        <h2>Colaboradores</h2>
+                    </div>
+                    <div id="collaborators-section">
+                        <ul id="collaborators-list" class="mb-4"><li>Carregando...</li></ul>
+                        <form id="form-add-collaborator" class="form-inline-add border-t border-gray-200 pt-4">
+                             <label for="collaborator-email" class="sr-only">Email do professor</label>
+                             <input type="email" id="collaborator-email" placeholder="Email do professor colaborador" required>
+                            <button type="submit" class="btn-add-inline"><i data-feather="plus"></i> Adicionar</button>
+                        </form>
+                    </div>
+                 </section>
+            </div>
+
+        </div> 
+    </main>
+    <div id="modal-edit-aluno-admin" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Aluno</h3>
+                <button class="btn-close-modal" data-modal-id="modal-edit-aluno-admin">&times;</button>
+            </div>
+            <form id="form-edit-aluno-admin">
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary btn-close-modal" data-modal-id="modal-edit-aluno-admin">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Aluno</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-move-aluno-admin" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Mover Aluno</h3>
+                <button class="btn-close-modal" data-modal-id="modal-move-aluno-admin">&times;</button>
+            </div>
+            <form id="form-move-aluno-admin">
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary btn-close-modal" data-modal-id="modal-move-aluno-admin">Cancelar</button>
+                    <button type="submit" class="btn-primary">Confirmar Movimentação</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-confirm-unlink-aluno" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Desvincular Aluno da Sala</h3>
+                <button class="btn-close-modal" data-modal-id="modal-confirm-unlink-aluno">&times;</button>
+            </div>
+            <div class="modal-actions">
+                 <button type="button" class="btn-secondary btn-close-modal" data-modal-id="modal-confirm-unlink-aluno">Cancelar</button>
+                <button id="btn-confirm-aluno-unlinking" class="btn-danger">Sim, Desvincular</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-view-tarefa-admin" class="modal-overlay hidden">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="view-tarefa-title">Detalhes da Tarefa</h3>
+                <button class="btn-close-modal" data-modal-id="modal-view-tarefa-admin">&times;</button>
+            </div>
+            <div class="modal-actions">
+                 <button type="button" class="btn-secondary btn-close-modal" data-modal-id="modal-view-tarefa-admin">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-edit-tarefa-admin" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Tarefa</h3>
+                 <button class="btn-close-modal" data-modal-id="modal-edit-tarefa-admin">&times;</button>
+            </div>
+            <form id="form-edit-tarefa-admin">
+                 <div class="modal-actions">
+                     <button type="button" class="btn-secondary btn-close-modal" data-modal-id="modal-edit-tarefa-admin">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Tarefa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-confirm-delete-tarefa" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Exclusão</h3>
+                 <button class="btn-close-modal" data-modal-id="modal-confirm-delete-tarefa">&times;</button>
+            </div>
+             <div class="modal-actions">
+                 <button type="button" class="btn-secondary btn-close-modal" data-modal-id="modal-confirm-delete-tarefa">Cancelar</button>
+                <button id="btn-confirm-tarefa-deletion" class="btn-danger">Sim, Excluir Tarefa</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-confirm-remove-pergunta" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Remover Pergunta</h3>
+                 <button class="btn-close-modal" data-modal-id="modal-confirm-remove-pergunta">&times;</button>
+            </div>
+             <div class="modal-actions">
+                 <button type="button" class="btn-secondary btn-close-modal" data-modal-id="modal-confirm-remove-pergunta">Cancelar</button>
+                <button id="btn-confirm-pergunta-removal" class="btn-danger">Sim, Remover</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-notification" class="toast-notification"></div>
+
+    <script src="/script/admin-sala-details.js"></script> <script>
+        feather.replace();
+    </script>
+</body>
+</html>

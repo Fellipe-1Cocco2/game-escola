@@ -29,6 +29,187 @@ function gerarParteAleatoria(){
 })();
 
 
+const getRankingDaSala = async (req, res) => {
+    try {
+        const { salaId } = req.params;
+
+        // Busca a sala e popula os alunos para pegar nomes/RAs
+        // Não precisa popular tarefas/perguntas aqui
+        const sala = await Sala.findById(salaId).populate('alunos', 'nome RA');
+
+        if (!sala) {
+            return res.status(404).json({ message: 'Sala não encontrada.' });
+        }
+
+        // Cria um mapa para acumular a pontuação total de cada aluno
+        const pontuacoes = new Map(); // Usaremos o ID do aluno como chave
+
+        // Inicializa o mapa com todos os alunos da sala (garante que alunos sem pontos apareçam)
+        sala.alunos.forEach(aluno => {
+            if (aluno && aluno._id) { // Garante que o aluno populado é válido
+                 pontuacoes.set(aluno._id.toString(), {
+                     alunoId: aluno._id,
+                     nome: aluno.nome,
+                     RA: aluno.RA,
+                     pontuacaoTotal: 0
+                 });
+            }
+        });
+
+        // Itera sobre cada tarefa da sala
+        for (const tarefa of sala.tarefas) {
+            // Itera sobre o progresso de cada aluno naquela tarefa
+            if (tarefa.progressos && tarefa.progressos.length > 0) {
+                for (const progresso of tarefa.progressos) {
+                    if (progresso.alunoId && progresso.pontuacao) {
+                        const alunoIdStr = progresso.alunoId.toString();
+                        // Se o aluno ainda está no mapa (não foi removido da sala?)
+                        if (pontuacoes.has(alunoIdStr)) {
+                            // Soma a pontuação da tarefa à pontuação total
+                            pontuacoes.get(alunoIdStr).pontuacaoTotal += progresso.pontuacao;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Converte o mapa em um array
+        const rankingArray = Array.from(pontuacoes.values());
+
+        // Ordena o array pela pontuação total (maior primeiro)
+        rankingArray.sort((a, b) => b.pontuacaoTotal - a.pontuacaoTotal);
+
+        // Retorna o ranking ordenado
+        res.status(200).json(rankingArray);
+
+    } catch (error) {
+        console.error('Erro ao calcular ranking da sala:', error);
+        res.status(500).json({ message: 'Erro interno no servidor ao calcular ranking.' });
+    }
+};
+
+
+const excluirTarefa = async (req, res) => {
+    try {
+        const { salaId, tarefaId } = req.params;
+
+        // Encontra a sala
+        const sala = await Sala.findById(salaId);
+        if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
+
+        // Verifica permissão (criador ou editor) - IMPORTANTE!
+        const podeEditar = sala.criador.equals(req.professor._id) || sala.editoresConvidados.some(id => id.equals(req.professor._id));
+        if (!podeEditar) return res.status(403).json({ message: 'Sem permissão para excluir tarefas nesta sala.' });
+
+        // Encontra a tarefa específica para garantir que existe antes de remover
+        const tarefa = sala.tarefas.id(tarefaId);
+        if (!tarefa) return res.status(404).json({ message: 'Tarefa não encontrada.' });
+
+        // Remove a tarefa do array usando $pull
+        // O Mongoose sabe como remover o subdocumento pelo _id
+        await Sala.updateOne(
+            { _id: salaId },
+            { $pull: { tarefas: { _id: tarefaId } } }
+        );
+
+        // Não precisamos retornar a sala inteira aqui, apenas sucesso
+        res.status(200).json({ message: 'Tarefa excluída com sucesso.' });
+
+    } catch (error) {
+        console.error('Erro ao excluir tarefa:', error);
+        res.status(500).json({ message: 'Erro no servidor ao excluir tarefa.' });
+    }
+};
+
+
+const importarAlunos = async (req, res) => {
+    try {
+        const { salaId } = req.params;
+        const { alunos } = req.body; // Recebe o array [{nome: '..', RA: '..'}, ...]
+
+        // Validações básicas
+        if (!alunos || !Array.isArray(alunos) || alunos.length === 0) {
+            return res.status(400).json({ message: 'Nenhum dado de aluno recebido para importação.' });
+        }
+
+        // Encontra a sala
+        const sala = await Sala.findById(salaId);
+        if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
+
+        // Verifica permissão (criador ou editor)
+        const podeEditar = sala.criador.equals(req.professor._id) || sala.editoresConvidados.some(id => id.equals(req.professor._id));
+        if (!podeEditar) return res.status(403).json({ message: 'Sem permissão para adicionar alunos nesta sala.' });
+
+        let alunosAdicionadosCount = 0;
+        let alunosVinculadosCount = 0;
+        let errosCount = 0;
+        const idsAlunosParaVincular = []; // Guarda os IDs dos alunos (novos e existentes)
+
+        // Itera sobre cada aluno da planilha
+        for (const alunoData of alunos) {
+            const { nome, RA } = alunoData;
+
+            // Valida se nome e RA não estão vazios (já filtrado no frontend, mas bom verificar)
+            if (!nome || !RA) {
+                console.warn(`Registro ignorado (nome ou RA vazio): ${JSON.stringify(alunoData)}`);
+                errosCount++;
+                continue; // Pula para o próximo aluno
+            }
+
+            try {
+                // Tenta encontrar um aluno existente pelo RA
+                let aluno = await Aluno.findOne({ RA });
+
+                if (aluno) {
+                    // Aluno já existe no sistema, apenas pega o ID
+                    idsAlunosParaVincular.push(aluno._id);
+                    alunosVinculadosCount++; // Conta como vinculado (mesmo que já estivesse na sala)
+                } else {
+                    // Aluno não existe, cria um novo
+                    const novoAluno = await Aluno.create({ nome, RA });
+                    idsAlunosParaVincular.push(novoAluno._id);
+                    alunosAdicionadosCount++;
+                }
+            } catch (error) {
+                // Erro ao criar aluno (provavelmente RA duplicado se outro processo criou ao mesmo tempo)
+                if (error.code === 11000 && error.keyPattern && error.keyPattern.RA) {
+                     console.warn(`RA ${RA} já existe (concorrência ou erro anterior?), tentando vincular.`);
+                     // Tenta buscar novamente para garantir
+                     let alunoExistente = await Aluno.findOne({ RA });
+                     if(alunoExistente) {
+                         idsAlunosParaVincular.push(alunoExistente._id);
+                         alunosVinculadosCount++;
+                     } else {
+                         errosCount++; // Se ainda não encontrar, conta como erro
+                     }
+                } else {
+                    console.error(`Erro ao processar aluno ${nome} (RA: ${RA}):`, error);
+                    errosCount++;
+                }
+            }
+        } // Fim do loop for
+
+        // Adiciona TODOS os IDs encontrados/criados à sala de uma vez
+        // $addToSet garante que não haverá IDs duplicados DENTRO da sala
+        if (idsAlunosParaVincular.length > 0) {
+            await Sala.findByIdAndUpdate(salaId, { $addToSet: { alunos: { $each: idsAlunosParaVincular } } });
+        }
+
+        // Monta a mensagem de resposta
+        let message = '';
+        if (alunosAdicionadosCount > 0) message += `${alunosAdicionadosCount} novos alunos cadastrados. `;
+        if (alunosVinculadosCount > 0) message += `${alunosVinculadosCount} alunos existentes vinculados. `;
+        if (errosCount > 0) message += `${errosCount} registros ignorados por erros ou dados inválidos.`;
+        if (message === '') message = 'Nenhum aluno processado.';
+
+        res.status(200).json({ message: message.trim() });
+
+    } catch (error) {
+        console.error('Erro geral ao importar alunos:', error);
+        res.status(500).json({ message: 'Erro interno no servidor ao importar alunos.' });
+    }
+};
+
 
 const removerPerguntaDaTarefa = async (req, res) => {
     try {
@@ -61,20 +242,29 @@ const removerPerguntaDaTarefa = async (req, res) => {
 };
 
 function extrairPrefixoCodigo(numSerie) {
-    // Tenta encontrar o padrão "Xº ano - Turma Y" ou "Xª série - Turma Y"
-    // Regex: ^(\d+) - Captura o número no início
-    //        (?:º ano|ª série) - Corresponde a "º ano" OU "ª série" (sem capturar)
-    //        \s-\sTurma\s - Corresponde ao separador literal
-    //        ([A-Z]) - Captura a letra da turma no final
-    //        $ - Garante que corresponde à string inteira
-    //        i - Ignora maiúsculas/minúsculas para "Turma"
-    const match = numSerie.match(/^(\d+)(?:º ano|ª série) - Turma ([A-Z])$/i);
+    // Regex atualizado para aceitar "Infantil X", "Xº ano", ou "Xª série"
+    // Grupo 1: Pode ser (?:Infantil\s+(\d+)) OU (\d+)
+    // Grupo 2: (?:º ano|ª série)? - Torna "º ano" ou "ª série" opcional (para o caso Infantil)
+    // Grupo 3: ([A-Z]) - A letra da turma
+    const match = numSerie.match(/^(?:(?:Infantil\s+(\d+))|(\d+))\s*(?:º ano|ª série)?\s*-\s*Turma\s*([A-Z])$/i);
 
-    if (match && match[1] && match[2]) {
-        // Se encontrou, retorna a combinação (Número + Letra da Turma em maiúsculo)
-        return `${match[1]}${match[2].toUpperCase()}`; // Ex: "1B"
+    if (match && match[3]) { // Precisa ter encontrado a Turma (grupo 3)
+        const turma = match[3].toUpperCase();
+        let numero;
+
+        if (match[1]) { // Se encontrou "Infantil X" (grupo 1)
+            numero = `I${match[1]}`; // Usa "I" + número
+        } else if (match[2]) { // Se encontrou "Xº ano" ou "Xª série" (grupo 2)
+            numero = match[2]; // Usa só o número
+        }
+
+        if (numero) {
+            return `${numero}${turma}`; // Retorna, ex: "I1A", "9B"
+        }
     }
-    // Se não encontrou o padrão esperado, retorna null
+
+    // Se não encontrou nenhum padrão válido
+    console.warn(`Formato de num_serie não reconhecido para extrair prefixo: "${numSerie}"`);
     return null;
 }
 
@@ -159,28 +349,33 @@ const excluirSala = async (req, res) => {
 // --- FUNÇÃO getTodasAsSalas MODIFICADA ---
 const getTodasAsSalas = async (req, res) => {
     try {
-        // 1. Obter o ID do professor logado (do middleware 'protect')
+        // 1. Obter o ID do professor logado
         const professorLogadoId = req.professor._id;
 
         // 2. Buscar o professor logado para encontrar o ID da escola dele
-        const professorLogado = await Professor.findById(professorLogadoId);
+        const professorLogado = await Professor.findById(professorLogadoId).select('school'); // Seleciona só o campo school
         if (!professorLogado || !professorLogado.school) {
-            // Se o professor não for encontrado ou não tiver escola associada, retorna lista vazia
             console.warn(`Professor ${professorLogadoId} não encontrado ou sem escola associada.`);
-            return res.status(200).json([]);
+            return res.status(200).json([]); // Retorna lista vazia se não tiver escola
         }
         const escolaId = professorLogado.school;
 
         // 3. Encontrar TODOS os professores que pertencem a ESSA escola
-        const professoresDaEscola = await Professor.find({ school: escolaId }).select('_id'); // Seleciona apenas os IDs
+        const professoresDaEscola = await Professor.find({ school: escolaId }).select('_id');
         const idsProfessoresDaEscola = professoresDaEscola.map(p => p._id);
+        if (idsProfessoresDaEscola.length === 0) {
+             return res.status(200).json([]); // Retorna lista vazia se não houver professores na escola
+        }
+
 
         // 4. Buscar apenas as salas cujo 'criador' está na lista de IDs de professores da escola
         const salas = await Sala.find({ criador: { $in: idsProfessoresDaEscola } })
-            .populate('criador', 'name') // Popula o nome do criador como antes
-            .sort({ createdAt: -1 }); // Ordena como antes
+            .populate('criador', 'name _id') // Popula criador (nome e ID)
+            // IMPORTANTE: Busca os IDs dos editores para a verificação no frontend
+            .select('-tarefas -alunos') // Opcional: Otimiza removendo arrays grandes se não usados no card
+            .sort({ createdAt: -1 });
 
-        // 5. Retornar a lista filtrada de salas
+        // 5. Retornar a lista COMPLETA de salas da escola
         res.status(200).json(salas);
 
     } catch (error) {
@@ -275,24 +470,82 @@ const alunoLogin = async (req, res) => {
     }
 };
 
+/**
+ * Verifica se um RA já existe para algum aluno DENTRO de uma escola específica.
+ * @param {String} RA - O RA a ser verificado.
+ * @param {mongoose.Types.ObjectId} escolaId - O ID da escola.
+ * @param {mongoose.Types.ObjectId | null} alunoIdExcluir - (Opcional) ID de um aluno a ser ignorado na busca (útil ao atualizar).
+ * @returns {Promise<boolean>} - True se o RA já existe na escola, false caso contrário.
+ */
+
+async function raExisteNaEscola(RA, escolaId, alunoIdExcluir = null) {
+    try {
+        // 1. Encontra todos os professores da escola
+        const professoresDaEscola = await Professor.find({ school: escolaId }).select('_id');
+        const idsProfessoresDaEscola = professoresDaEscola.map(p => p._id);
+        if (idsProfessoresDaEscola.length === 0) return false; // Ninguém na escola, RA não existe
+
+        // 2. Encontra todas as salas criadas por esses professores
+        const salasDaEscola = await Sala.find({ criador: { $in: idsProfessoresDaEscola } }).select('alunos');
+        if (salasDaEscola.length === 0) return false; // Nenhuma sala na escola
+
+        // 3. Coleta todos os IDs de alunos únicos dessas salas
+        const idsAlunosDaEscola = [...new Set(salasDaEscola.flatMap(s => s.alunos))];
+        if (idsAlunosDaEscola.length === 0) return false; // Nenhuma aluno na escola
+
+        // 4. Monta a query para buscar o aluno com o RA na escola
+        const query = {
+            RA: RA, // Busca pelo RA
+            _id: { $in: idsAlunosDaEscola } // Que esteja na lista de alunos da escola
+        };
+        // Se estamos atualizando, excluímos o próprio aluno da verificação
+        if (alunoIdExcluir) {
+            query._id.$ne = alunoIdExcluir; // $ne = not equal
+        }
+
+        // 5. Verifica se algum aluno corresponde
+        const alunoExistenteNaEscola = await Aluno.findOne(query);
+
+        return !!alunoExistenteNaEscola; // Retorna true se encontrou, false se não
+
+    } catch (error) {
+        console.error("Erro ao verificar RA na escola:", error);
+        // Em caso de erro na verificação, assume que PODE existir para segurança
+        return true;
+    }
+}
+
+
+
 // --- FUNÇÕES DE GERENCIAMENTO DE ALUNOS ---
 const cadastrarEAdicionarAluno = async (req, res) => {
     try {
         const { nome, RA } = req.body;
         const { salaId } = req.params;
 
-        const alunoExistente = await Aluno.findOne({ RA });
-        if (alunoExistente) {
-            return res.status(409).json({ message: 'Um aluno com este RA já existe. Use a função "Vincular Aluno".' });
+        // --- VALIDAÇÃO DE RA NA ESCOLA ---
+        const sala = await Sala.findById(salaId).populate({ path: 'criador', select: 'school' });
+        if (!sala || !sala.criador || !sala.criador.school) {
+            return res.status(404).json({ message: 'Sala ou escola do criador não encontrada.' });
         }
+        const escolaId = sala.criador.school;
+        const jaExiste = await raExisteNaEscola(RA, escolaId);
+        if (jaExiste) {
+            return res.status(409).json({ message: `Um aluno com o RA ${RA} já existe nesta escola.` });
+        }
+        // --- FIM DA VALIDAÇÃO ---
 
+        // Procede com a criação se não existir na escola
         const novoAluno = await Aluno.create({ nome, RA });
-
         await Sala.findByIdAndUpdate(salaId, { $push: { alunos: novoAluno._id } });
-
         res.status(201).json(novoAluno);
+
     } catch (error) {
         console.error('Erro ao cadastrar e adicionar aluno:', error);
+        // Trata erro de validação do Mongoose (caso a verificação falhe por concorrência)
+        if (error.code === 11000 && error.keyPattern && error.keyPattern.RA) {
+             return res.status(409).json({ message: `O RA ${req.body.RA} já está em uso (concorrência?).` });
+        }
         res.status(500).json({ message: 'Erro no servidor.' });
     }
 };
@@ -302,30 +555,35 @@ const vincularAlunoExistente = async (req, res) => {
         const { RA } = req.body;
         const { salaId } = req.params;
 
+        // --- BUSCA ALUNO E SALA ---
         const aluno = await Aluno.findOne({ RA });
         if (!aluno) {
             return res.status(404).json({ message: 'Nenhum aluno encontrado com este RA.' });
         }
-
-        const salaOndeAlunoJaEsta = await Sala.findOne({ alunos: aluno._id });
-        if (salaOndeAlunoJaEsta) {
-            if (salaOndeAlunoJaEsta._id.equals(salaId)) {
-                return res.status(409).json({ message: `Este aluno já está nesta sala (${salaOndeAlunoJaEsta.num_serie}).` });
-            }
-            // Alterado para permitir vincular a uma sala, mesmo que já esteja em outra (se necessário, reverter essa lógica)
-            // return res.status(409).json({ message: `Este aluno já está vinculado à sala "${salaOndeAlunoJaEsta.num_serie}". Não é possível adicioná-lo em duas salas.` });
+        const sala = await Sala.findById(salaId).populate({ path: 'criador', select: 'school' });
+        if (!sala || !sala.criador || !sala.criador.school) {
+            return res.status(404).json({ message: 'Sala ou escola do criador não encontrada.' });
         }
+        // --- FIM BUSCA ---
 
-        // Verifica se o aluno já está na sala atual antes de adicionar
-        const salaAtual = await Sala.findById(salaId);
-        if (salaAtual.alunos.includes(aluno._id)) {
+        // Verifica se o aluno já está NESTA sala
+        if (sala.alunos.includes(aluno._id)) {
             return res.status(409).json({ message: `Este aluno já está vinculado a esta sala.` });
         }
 
+        // --- VALIDAÇÃO DE RA NA ESCOLA (Opcional, mas boa prática) ---
+        // Verifica se OUTRO aluno com o mesmo RA já existe na escola
+        // const escolaId = sala.criador.school;
+        // const outroAlunoComRAExiste = await raExisteNaEscola(RA, escolaId, aluno._id); // Exclui o próprio aluno da busca
+        // if (outroAlunoComRAExiste) {
+        //     return res.status(409).json({ message: `Erro: Outro aluno com o RA ${RA} já existe nesta escola.` });
+        // }
+        // --- FIM DA VALIDAÇÃO (Opcional) ---
 
-        await Sala.findByIdAndUpdate(salaId, { $addToSet: { alunos: aluno._id } }); // Usar $addToSet previne duplicatas
-
+        // Vincula o aluno à sala
+        await Sala.findByIdAndUpdate(salaId, { $addToSet: { alunos: aluno._id } });
         res.status(200).json(aluno);
+
     } catch (error) {
         console.error('Erro ao vincular aluno:', error);
         res.status(500).json({ message: 'Ocorreu um erro interno ao tentar vincular o aluno.' });
@@ -337,32 +595,32 @@ const atualizarAluno = async (req, res) => {
         const { salaId, alunoId } = req.params;
         const { nome, RA } = req.body;
 
-        const sala = await Sala.findById(salaId);
-        if (!sala) return res.status(404).json({ message: 'Sala não encontrada.' });
+        // --- VALIDAÇÃO DE RA NA ESCOLA ---
+        const sala = await Sala.findById(salaId).populate({ path: 'criador', select: 'school' });
+        if (!sala || !sala.criador || !sala.criador.school) {
+             return res.status(404).json({ message: 'Sala ou escola do criador não encontrada para validação.' });
+        }
+        const escolaId = sala.criador.school;
+        // Verifica se o NOVO RA já existe em OUTRO aluno da escola
+        const jaExiste = await raExisteNaEscola(RA, escolaId, alunoId); // Passa alunoId para excluir ele mesmo da busca
+        if (jaExiste) {
+             return res.status(409).json({ message: `O RA ${RA} já está sendo utilizado por outro aluno nesta escola.` });
+        }
+        // --- FIM DA VALIDAÇÃO ---
 
+        // Permissão (já existia)
         const podeEditar = sala.criador.equals(req.professor._id) || sala.editoresConvidados.some(id => id.equals(req.professor._id));
         if (!podeEditar) return res.status(403).json({ message: 'Você não tem permissão para editar nesta sala.' });
 
-        // Adicionado: Verificar se o novo RA já existe em outro aluno
-        const outroAlunoComMesmoRA = await Aluno.findOne({ RA: RA, _id: { $ne: alunoId } });
-        if (outroAlunoComMesmoRA) {
-             return res.status(409).json({ message: 'Este RA já está sendo utilizado por outro aluno.' });
-        }
-
-
+        // Atualiza o aluno
         const alunoAtualizado = await Aluno.findByIdAndUpdate(alunoId, { nome, RA }, { new: true, runValidators: true });
-
         if (!alunoAtualizado) {
             return res.status(404).json({ message: 'Aluno não encontrado.' });
         }
-
         res.status(200).json(alunoAtualizado);
+
     } catch (error) {
         console.error('Erro ao atualizar aluno:', error);
-         // Trata erro de RA duplicado do Mongoose (caso a verificação acima falhe por concorrência)
-        if (error.code === 11000 && error.keyPattern && error.keyPattern.RA) {
-            return res.status(409).json({ message: 'Este RA já está sendo utilizado por outro aluno.' });
-        }
         res.status(500).json({ message: 'Erro no servidor ao atualizar aluno.' });
     }
 };
@@ -945,6 +1203,6 @@ module.exports = {
     adicionarTarefa, getTarefaDetalhes, getTarefasDaSala,
     criarPerguntaParaTarefa, getBancoDePerguntas, adicionarPerguntaDoBanco,
     salvarProgressoAluno,
-    gerarTarefaComIA, removerPerguntaDaTarefa,atualizarTarefa
+    gerarTarefaComIA, removerPerguntaDaTarefa,atualizarTarefa, excluirTarefa,importarAlunos, getRankingDaSala
 };
 

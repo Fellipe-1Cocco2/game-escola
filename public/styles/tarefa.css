@@ -77,37 +77,65 @@ body {
     transition: background-color 0.2s ease;
     flex-shrink: 0; /* Impede que encolha */
 }
-.header-actions { /* Container para o botão editar */
+.header-actions {
     display: flex;
+    gap: 0.75rem;
 }
 .btn-editar-header {
-    /* Estilos base (iguais ao .btn-voltar) */
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
-    padding: 0.6rem 1.2rem; /* Padding igual ao .btn-voltar (ajustado se necessário) */
+    padding: 0.6rem 1.2rem; /* Padding para texto e ícone */
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
     transition: background-color 0.2s ease;
-
-    /* Propriedades Flexbox para alinhar ícone e texto */
-    display: inline-flex; /* Usar inline-flex para se comportar melhor ao lado de outros elementos */
-    align-items: center;  /* Alinha verticalmente */
-    justify-content: center; /* Alinha horizontalmente (caso precise) */
-    gap: 0.5rem;          /* Espaço entre ícone e texto */
-
-    /* Garante que o SVG herde a cor e tenha tamanho fixo */
-    line-height: 1; /* Ajuda no alinhamento vertical do texto */
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    line-height: 1;
 }
 
 /* Garante que o SVG dentro do botão tenha a cor correta */
 .btn-editar-header svg {
-    stroke: currentColor; /* Usa a cor do texto do botão (branco) */
-    width: 20px; /* Define largura explícita */
-    height: 20px; /* Define altura explícita */
-    flex-shrink: 0; /* Impede que o ícone encolha */
+    stroke: currentColor;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.btn-header-icon {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    width: 40px; /* Largura fixa */
+    height: 40px; /* Altura fixa (para ser quadrado) */
+    border-radius: 8px; /* Mesma borda */
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: inline-flex; /* Para centralizar o ícone */
+    align-items: center;
+    justify-content: center;
+    padding: 0; /* Remove padding interno */
+}
+
+.btn-header-icon:hover {
+     background-color: rgba(255, 255, 255, 0.2);
+}
+.btn-excluir-tarefa { /* Mantém a classe específica para a cor */
+    background-color: rgba(239, 68, 68, 0.8); /* Vermelho translúcido */
+    border-color: rgba(239, 68, 68, 0.9);
+}
+.btn-excluir-tarefa:hover {
+    background-color: rgba(220, 38, 38, 0.9); /* Vermelho mais forte no hover */
+    border-color: rgba(220, 38, 38, 1);
+}
+
+.btn-header-icon svg {
+    stroke: currentColor; /* Herda a cor branca */
+    width: 20px; /* Tamanho do ícone */
+    height: 20px;
 }
 
 /* Efeito Hover (igual ao .btn-voltar) */
@@ -115,6 +143,15 @@ body {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
+.btn-excluir-tarefa { /* Mantém a classe específica para a cor */
+    background-color: rgba(239, 68, 68, 0.8); /* Vermelho translúcido */
+    border-color: rgba(239, 68, 68, 0.9);
+}
+
+.btn-excluir-tarefa:hover {
+    background-color: rgba(220, 38, 38, 0.9); /* Vermelho mais forte no hover */
+    border-color: rgba(220, 38, 38, 1);
+}
 /* Layout Principal */
 .main-content { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
 

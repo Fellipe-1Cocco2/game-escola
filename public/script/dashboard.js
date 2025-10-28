@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const listaSalasEl = document.getElementById('lista-salas');
     const btnLogoutEl = document.getElementById('btn-logout');
 
-    // Elementos do Modal
+    // Elementos do Modal Nova Sala
     const btnAbrirModalEl = document.getElementById('btn-abrir-modal');
     const modalEl = document.getElementById('modal-nova-sala');
     const btnFecharModalEl = document.getElementById('btn-fechar-modal');
@@ -13,56 +13,86 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectAnoSerieEl = document.getElementById('select-ano-serie');
     const selectTurmaEl = document.getElementById('select-turma');
 
+    // ****** NOVO: Elementos do Modal Editar Perfil ******
+    const btnAbrirModalPerfilEl = document.getElementById('btn-abrir-modal-perfil');
+    const modalPerfilEl = document.getElementById('modal-editar-perfil');
+    const btnFecharModalPerfilEl = document.getElementById('btn-fechar-modal-perfil');
+    const formEditarNomeEl = document.getElementById('form-editar-nome');
+    const formAlterarSenhaEl = document.getElementById('form-alterar-senha');
+    const nomePerfilInput = document.getElementById('nome-perfil');
+    const senhaAtualInput = document.getElementById('senha-atual');
+    const novaSenhaInput = document.getElementById('nova-senha');
+    const confirmarNovaSenhaInput = document.getElementById('confirmar-nova-senha');
+    // ****** FIM NOVO ******
+
     const toastNotificationEl = document.getElementById('toast-notification');
     let toastTimeout;
-    let professorLogado = null;
+    let professorLogado = null; // Guarda os dados do professor
 
-    // Verificação de segurança para garantir que todos os elementos existem no HTML
-    if (!nomeProfessorEl || !listaSalasEl || !btnLogoutEl || !btnAbrirModalEl || !modalEl || !formNovaSalaEl) {
-        console.error("Erro crítico: Elementos essenciais do dashboard não foram encontrados no DOM. Verifique os IDs no ficheiro dashboard.html.");
+    // Verificação de segurança
+    if (!nomeProfessorEl || !listaSalasEl || !btnLogoutEl || !btnAbrirModalEl || !modalEl || !formNovaSalaEl || !btnAbrirModalPerfilEl || !modalPerfilEl) { // Adicionado verificação modal perfil
+        console.error("Erro crítico: Elementos essenciais do dashboard não foram encontrados no DOM.");
         return;
     }
 
-    const fetchDashboardData = async () => {
+    // --- Função Genérica para Requisições ---
+    const sendRequest = async (url, method, body = null, headers = {}) => {
         const token = localStorage.getItem('token');
         if (!token) {
             window.location.href = '/login';
-            return;
+            throw new Error('Token não encontrado.');
         }
-
         try {
-            // 1. Busca os dados do professor logado
-            const meResponse = await fetch('/api/users/me', {
-                headers: { 'Authorization': `Bearer ${token}` }
+            const defaultHeaders = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+            const response = await fetch(url, {
+                method: method,
+                headers: { ...defaultHeaders, ...headers },
+                body: body ? JSON.stringify(body) : null
             });
-            if (!meResponse.ok) throw new Error('Sessão expirada. Por favor, faça login novamente.');
-            professorLogado = await meResponse.json();
+
+            if (response.status === 401) {
+                throw new Error('Sessão expirada. Faça login novamente.');
+            }
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || `Erro ${response.status}`);
+            }
+            return data;
+        } catch (error) {
+            console.error(`Erro na requisição ${method} ${url}:`, error);
+            // Trata erro 401 especificamente
+            if (error.status === 401 || error.message.includes('Sessão expirada')) {
+                showToast('Sua sessão expirou. Por favor, faça login novamente.', 'error');
+                setTimeout(() => {
+                    handleLogout();
+                }, 2000);
+            } else {
+                showToast(error.message || 'Ocorreu um erro na operação.', 'error');
+            }
+            throw error; // Re-lança o erro para quem chamou saber que falhou
+        }
+    };
+
+
+    const fetchDashboardData = async () => {
+        try {
+            // 1. Busca os dados do professor logado (já inclui escola)
+            professorLogado = await sendRequest('/api/users/me', 'GET'); // Usa sendRequest
             nomeProfessorEl.textContent = professorLogado.name;
 
-            // 2. Busca todas as salas
-            const salasResponse = await fetch('/api/game/salas', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!salasResponse.ok) throw new Error('Não foi possível carregar as salas.');
-            const salas = await salasResponse.json();
-            
+            // 2. Busca as salas da escola do professor
+            const salas = await sendRequest('/api/game/salas', 'GET'); // Usa sendRequest
             renderSalas(salas);
 
         } catch (error) {
-            console.error("Erro ao buscar dados do dashboard:", error);
-            
-            // --- INÍCIO DA MODIFICAÇÃO: Tratamento de erro 401 ---
-            if (error.status === 401) {
-                showToast('Sua sessão expirou. Por favor, faça login novamente.', 'error');
-                // Atraso para o usuário ler o toast antes de redirecionar
-                setTimeout(() => {
-                    handleLogout(); // handleLogout já redireciona para /login
-                }, 2000);
-            } else {
-                // Mostra outros erros normalmente
-                showToast(error.message || 'Não foi possível carregar os dados.', 'error');
-            }
-            // --- FIM DA MODIFICAÇÃO ---
+           // O erro já é tratado e exibido dentro do sendRequest
+           // Apenas garantimos que o spinner ou mensagem de loading seja removido se houver
+           listaSalasEl.innerHTML = '<p class="empty-message">Não foi possível carregar as salas.</p>'; // Mensagem de erro
         }
     };
 
@@ -81,7 +111,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const isDono = professorLogado && professorLogado._id === sala.criador._id;
-            const isEditor = professorLogado && (sala.editoresConvidados || []).some(editorId => editorId === professorLogado._id);
+            // Corrigido: editoresConvidados pode não existir ou ser null
+           const isEditor = professorLogado &&
+                         Array.isArray(sala.editoresConvidados) &&
+                         sala.editoresConvidados.some(editorIdOrObject => {
+                             // Compara diretamente com o ID do professor logado
+                             // Funciona se for um ID (string) ou um objeto {_id: ...}
+                             const editorId = editorIdOrObject?._id || editorIdOrObject;
+                             return editorId && editorId.toString() === professorLogado._id;
+                         });
+
             const podeGerenciar = isDono || isEditor;
 
             const salaCard = document.createElement('div');
@@ -110,7 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleCriarSala = async (event) => {
-        event.preventDefault();
+        // ... (seu código handleCriarSala existente) ...
+         event.preventDefault();
         const anoSerie = selectAnoSerieEl.value;
         const turma = selectTurmaEl.value;
 
@@ -120,34 +160,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const nomeCompletoSala = `${anoSerie} - Turma ${turma}`;
-        const token = localStorage.getItem('token');
 
         try {
-            const response = await fetch('/api/game/salas', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ num_serie: nomeCompletoSala })
-            });
-
-            // --- ESTA É A CORREÇÃO ---
-            // Se a resposta não for 'ok' (ex: erro 409 - Conflito),
-            // tentamos ler a mensagem de erro que o backend enviou.
-            if (!response.ok) {
-                const errorData = await response.json(); // Extrai o { "message": "..." } do corpo da resposta
-                throw new Error(errorData.message || 'Falha ao criar a sala.'); // Lança um erro com a mensagem específica
-            }
-
-            const novaSala = await response.json();
+            await sendRequest('/api/game/salas', 'POST', { num_serie: nomeCompletoSala });
             fecharModal();
-            fetchDashboardData();
+            fetchDashboardData(); // Recarrega tudo
             showToast('Sala criada com sucesso!', 'success');
 
         } catch (error) {
-            console.error("Erro ao criar sala:", error);
-            showToast(error.message, 'error'); // Agora o toast mostrará a mensagem correta, ex: "Uma sala com este nome já existe."
+            // Erro já tratado no sendRequest
         }
     };
 
@@ -157,6 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const showToast = (message, type = 'error') => {
+        // ... (seu código showToast existente) ...
         clearTimeout(toastTimeout);
         toastNotificationEl.textContent = message;
         toastNotificationEl.className = 'toast-notification';
@@ -166,26 +188,106 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     };
 
-    // Funções para controlar o modal
+    // Funções Modal Nova Sala
     const abrirModal = () => modalEl.classList.remove('hidden');
     const fecharModal = () => {
         modalEl.classList.add('hidden');
-        formNovaSalaEl.reset(); // Limpa o formulário ao fechar
+        formNovaSalaEl.reset();
     };
+
+    // ****** NOVO: Funções Modal Editar Perfil ******
+    const abrirModalPerfil = () => {
+        if (professorLogado && nomePerfilInput) {
+            nomePerfilInput.value = professorLogado.name; // Preenche o nome atual
+        }
+        // Limpa campos de senha
+        if(senhaAtualInput) senhaAtualInput.value = '';
+        if(novaSenhaInput) novaSenhaInput.value = '';
+        if(confirmarNovaSenhaInput) confirmarNovaSenhaInput.value = '';
+
+        modalPerfilEl.classList.remove('hidden');
+    };
+
+    const fecharModalPerfil = () => {
+        modalPerfilEl.classList.add('hidden');
+        // Opcional: Limpar formulários se não foram submetidos com sucesso
+        if(formEditarNomeEl) formEditarNomeEl.reset();
+        if(formAlterarSenhaEl) formAlterarSenhaEl.reset();
+    };
+
+    const handleEditarNome = async (event) => {
+        event.preventDefault();
+        const novoNome = nomePerfilInput.value.trim();
+
+        if (!novoNome) {
+            showToast('O nome não pode ficar vazio.', 'error');
+            return;
+        }
+        if (novoNome === professorLogado.name) {
+             showToast('O novo nome é igual ao atual.', 'info');
+             return;
+        }
+
+        try {
+            const updatedProfessor = await sendRequest('/api/users/me/profile', 'PUT', { name: novoNome });
+            showToast('Nome atualizado com sucesso!', 'success');
+            // Atualiza o nome no header e na variável local
+            professorLogado.name = updatedProfessor.name;
+            nomeProfessorEl.textContent = updatedProfessor.name;
+            fecharModalPerfil();
+        } catch (error) {
+            // Erro já tratado no sendRequest
+        }
+    };
+
+    const handleAlterarSenha = async (event) => {
+        event.preventDefault();
+        const senhaAtual = senhaAtualInput.value; // Não usa trim() em senhas
+        const novaSenha = novaSenhaInput.value;
+        const confirmarNovaSenha = confirmarNovaSenhaInput.value;
+
+        if (!senhaAtual || !novaSenha || !confirmarNovaSenha) {
+            showToast('Todos os campos de senha são obrigatórios.', 'error');
+            return;
+        }
+        if (novaSenha.length < 6) {
+            showToast('A nova senha deve ter no mínimo 6 caracteres.', 'error');
+            return;
+        }
+        if (novaSenha !== confirmarNovaSenha) {
+            showToast('A nova senha e a confirmação não coincidem.', 'error');
+            return;
+        }
+
+        try {
+            // O backend retorna apenas uma mensagem de sucesso, não dados do usuário
+            await sendRequest('/api/users/me/password', 'PUT', {
+                currentPassword: senhaAtual,
+                newPassword: novaSenha
+            });
+            showToast('Senha alterada com sucesso!', 'success');
+            fecharModalPerfil(); // Fecha o modal após sucesso
+        } catch (error) {
+            // Erro já tratado no sendRequest (ex: senha atual incorreta)
+        }
+    };
+    // ****** FIM NOVO ******
 
     // Event Listeners
     btnLogoutEl.addEventListener('click', handleLogout);
     btnAbrirModalEl.addEventListener('click', abrirModal);
     btnFecharModalEl.addEventListener('click', fecharModal);
     formNovaSalaEl.addEventListener('submit', handleCriarSala);
-    modalEl.addEventListener('click', (e) => {
-        // Fecha o modal se o clique for no fundo escuro
-        if (e.target === modalEl) {
-            fecharModal();
-        }
-    });
+    modalEl.addEventListener('click', (e) => { if (e.target === modalEl) fecharModal(); });
+
+    // ****** NOVO: Event Listeners Modal Editar Perfil ******
+    btnAbrirModalPerfilEl.addEventListener('click', abrirModalPerfil);
+    btnFecharModalPerfilEl.addEventListener('click', fecharModalPerfil);
+    modalPerfilEl.addEventListener('click', (e) => { if (e.target === modalPerfilEl) fecharModalPerfil(); });
+    formEditarNomeEl.addEventListener('submit', handleEditarNome);
+    formAlterarSenhaEl.addEventListener('submit', handleAlterarSenha);
+    // ****** FIM NOVO ******
 
     // Inicia o carregamento dos dados da página
     fetchDashboardData();
 });
-
