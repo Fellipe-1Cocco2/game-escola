@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matemática - Capivara Matemática</title>
+    <link rel="stylesheet" href="../styles/aluno.css">
+    <link rel="stylesheet" href="../styles/jogo-mat-let.css"> </head>
+<body>
+
+    <header class="game-header-tarefas">
+        <div class="header-content">
+            <a href="/tarefas" class="btn-voltar">⬅ Voltar ao Hub</a>
+            <h1 class="game-title">Capivara Matemática ➕</h1>
+            <span id="placar-capivara" class="placar">Pontos: 0</span>
+        </div>
+    </header>
+
+    <main class="game-main-content">
+        <div id="problema-container">
+            <span id="problema"></span>
+        </div>
+
+        <div id="jogo-container-mat">
+            <div class="campo-label">Capivaras disponíveis (Escolha)</div>
+            <div id="campo-inicial" class="zona-drop-mat"></div>
+
+            <div id="cerca"></div>
+
+            <div class="campo-label">Sua Resposta: <span id="numero-capivaras">0</span> Capivaras</div>
+            <div id="campo-final" class="zona-drop-mat resposta"></div>
+        </div>
+
+        <div class="game-actions">
+            <button id="verificar-btn" class="btn-primary">Verificar Resposta</button>
+        </div>
+        
+        <p id="feedback" class="feedback-message"></p>
+    </main>
+
+    <script src="../script/jogo-mat-let.js"></script>
+</body>
+</html>

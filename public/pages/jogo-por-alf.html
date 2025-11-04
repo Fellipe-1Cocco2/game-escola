@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Português - Forme a Palavra</title>
+    <link rel="stylesheet" href="../styles/aluno.css">
+    <link rel="stylesheet" href="../styles/jogo-por-alf.css"> </head>
+<body>
+
+    <header class="game-header-tarefas">
+        <div class="header-content">
+            <a href="/tarefas" class="btn-voltar">⬅ Voltar ao Hub</a>
+            <h1 class="game-title">Forme a Palavra! 🔠</h1>
+            <span id="placar-alf" class="placar">Pontos: 0</span>
+        </div>
+    </header>
+
+    <main class="game-main-content">
+        <div id="palavra-alvo-container">
+            <p>Forme a palavra:</p>
+            <div id="palavra-alvo"></div> </div>
+
+        <div id="silabas-container-drop" class="zona-drop-silaba">
+            </div>
+
+        <p class="instrucoes">Arraste as sílabas abaixo na ordem para formar a palavra.</p>
+        
+        <div id="silabas-origem">
+            </div>
+
+        <div class="game-actions">
+            <button id="verificar-btn" class="btn-primary">Verificar</button>
+        </div>
+        
+        <p id="feedback" class="feedback-message"></p>
+    </main>
+
+    <script src="../script/jogo-por-alf.js"></script>
+</body>
+</html>

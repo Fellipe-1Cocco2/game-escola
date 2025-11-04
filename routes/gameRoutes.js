@@ -18,6 +18,7 @@ router.route('/salas').post(protect, criarSala).get(protect, getTodasAsSalas);
 router.route('/salas/:salaId').get(protect, getSalaDetalhes).delete(protect, excluirSala);
 router.post('/salas/:salaId/convidar', protect, convidarEditor);
 
+
 // --- ROTAS DE ALUNO ---
 router.post('/aluno/login', alunoLogin);
 router.post('/salas/:salaId/alunos', protect, cadastrarEAdicionarAluno); // Rota para CADASTRAR

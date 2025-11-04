@@ -33,6 +33,11 @@ router.get('/tarefa/:tarefaId/sala/:salaId', servePage('tarefa')); // Gerenciar 
 router.get('/tarefas', servePage('tarefas')); // Lista de Tarefas (Aluno)
 router.get('/jogar/tarefa/:tarefaId', servePage('jogar-tarefa')); // Jogar Tarefa (Aluno)
 
+router.get('/jogo-mat-let', servePage('jogo-mat-let')); // Jogo Matemática Letramento
+router.get('/jogo-mat-alf', servePage('jogo-mat-alf')); // Jogo Matemática Alfabetização
+router.get('/jogo-por-let', servePage('jogo-por-let')); // Jogo Português Letramento
+router.get('/jogo-por-alf', servePage('jogo-por-alf')); // Jogo Português Alfabetização
+
 // --- Rotas ADMIN ---
 router.get('/admin/login', servePage('admin-login')); // Página de login do Admin
 router.get('/admin/dashboard', servePage('admin-dashboard')); // Dashboard principal do Admin

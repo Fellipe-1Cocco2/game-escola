@@ -1,0 +1,100 @@
+/* styles/jogo-mat-let.css */
+
+.game-main-content {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 30px;
+    gap: 20px;
+    background-color: #e6ffe6; /* Fundo verde claro para tema campo */
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 3px solid #16a34a;
+}
+#problema-container {
+    font-family: var(--fonte-titulo);
+    font-size: 3em;
+    margin-bottom: 30px;
+    background-color: var(--cor-principal);
+    color: white;
+    padding: 10px 25px;
+    border-radius: 10px;
+    display: inline-block;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+#jogo-container-mat {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.campo-label {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #14532d;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.zona-drop-mat {
+    width: 100%;
+    height: auto;
+    border: 4px dashed #16a34a; /* Borda verde */
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    justify-content: center;
+    background-color: #f7fff7;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.resposta{
+    min-height: 300px;
+}
+.zona-drop-mat.hover-drop {
+    background-color: #d8f5d8;
+    box-shadow: 0 0 10px rgba(22, 163, 74, 0.5);
+}
+.zona-drop-mat.acerto { border-color: gold; animation: pulse 0.5s; }
+.zona-drop-mat.erro { border-color: var(--cor-erro); animation: shake 0.5s; }
+
+
+/* Capivara Sprite (Placeholder: Assumindo que você tem a imagem da capivara) */
+.capivara-sprite {
+    width: 70px;
+    height: 70px;
+    /* Substitua pela sua imagem real, se necessário */
+    background-image: url('../img/capivara.jpg'); 
+    background-size: contain;
+    background-repeat: no-repeat;
+    cursor: grab;
+    margin: 5px;
+}
+.capivara-sprite.arrastando { opacity: 0.5; }
+
+/* Animações */
+@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(22, 163, 74, 0); } 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); } }
+
+/* Dentro de styles/jogo-por-alf.css (ADICIONE ESTE ESTILO) */
+
+.feedback-message {
+    /* Garante que o feedback tenha um espaçamento superior consistente */
+    margin-top: 15px; /* Adiciona 15 pixels de espaço acima do feedback */
+    /* Garante que o texto de feedback seja centralizado */
+    text-align: center; 
+    font-size: 1.1em;
+}
+
+/* Opcional: Adicionar um pequeno espaço abaixo da área do botão */
+.game-actions {
+    margin-bottom: 10px;
+    text-align: center;
+}
+

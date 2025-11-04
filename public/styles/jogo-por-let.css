@@ -1,0 +1,107 @@
+/* styles/jogo-por-let.css */
+
+.game-main-content {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.instrucoes {
+    font-size: 1.2em;
+    color: var(--cor-texto-principal);
+    margin-bottom: 30px;
+    font-weight: 500;
+    text-align: center;
+}
+#jogo-container-por {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    align-items: flex-start;
+    flex-direction: column;
+}
+#imagens-container {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+#palavras-container {
+    display: flex;
+    gap: 15px;
+    padding: 10px;
+    border: 2px dashed var(--cor-borda);
+    border-radius: 10px;
+    flex-wrap: wrap;
+}
+.item-imagem {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.imagem {
+    font-size: 60px;
+    line-height: 1;
+    margin-right: 20px;
+}
+.zona-drop {
+    width: 160px;
+    height: 40px;
+    border: 2px dashed var(--cor-principal);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    transition: background-color 0.3s;
+}
+.zona-drop.hover {
+    background-color: var(--cor-azul-claro);
+}
+.placeholder {
+    color: #aaa;
+    font-style: italic;
+    font-size: 0.8em;
+    margin: 0;
+}
+.palavra {
+    width: 150px;
+    padding: 8px 0;
+    font-size: 1.1em;
+    font-weight: 600;
+    border: 2px solid var(--cor-principal-clara);
+    border-radius: 8px;
+    background-color: #fff;
+    cursor: grab;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.palavra.arrastando { opacity: 0.6; transform: scale(0.95); }
+.palavra.acerto { background-color: var(--cor-escolhida-certa-fundo); border-color: var(--cor-sucesso); }
+.palavra.erro { background-color: var(--cor-escolhida-errada-fundo); border-color: var(--cor-erro); }
+
+/* Feedback */
+.feedback-message.success { color: var(--cor-sucesso); font-weight: bold; }
+.feedback-message.error { color: var(--cor-erro); font-weight: bold; }
+
+/* Dentro de styles/jogo-por-alf.css (ADICIONE ESTE ESTILO) */
+
+.feedback-message {
+    /* Garante que o feedback tenha um espaçamento superior consistente */
+    margin-top: 15px; /* Adiciona 15 pixels de espaço acima do feedback */
+    /* Garante que o texto de feedback seja centralizado */
+    text-align: center; 
+    font-size: 1.1em;
+}
+
+/* Opcional: Adicionar um pequeno espaço abaixo da área do botão */
+.game-actions {
+    margin-bottom: 10px;
+    text-align: center;
+}

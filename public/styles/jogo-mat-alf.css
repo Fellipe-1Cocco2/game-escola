@@ -1,0 +1,90 @@
+/* styles/jogo-mat-alf.css */
+
+.game-main-content {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 30px;
+    background-color: var(--cor-amarelo-claro); /* Fundo amarelado suave */
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--cor-amarelo-texto);
+}
+.instrucoes {
+    font-size: 1.3em;
+    color: var(--cor-texto-principal);
+    margin-bottom: 30px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Slots de Drop */
+#numeros-container-drop {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    min-height: 100px;
+    padding: 20px;
+    border-bottom: 3px solid var(--cor-borda);
+    margin-bottom: 20px;
+}
+.numero-drop-slot {
+    width: 100px;
+    height: 80px;
+    background-color: #fff;
+    border: 3px dashed var(--cor-amarelo-texto);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.numero-drop-slot.hover {
+    background-color: #fff0b3;
+    transform: scale(1.05);
+}
+
+/* Números Arrastáveis (Origem) */
+#numeros-origem {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    min-height: 80px;
+    padding: 20px;
+    background-color: var(--cor-amarelo-claro);
+    border-radius: 10px;
+}
+.numero-arrastavel {
+    width: 90px;
+    height: 70px;
+    padding: 10px;
+    font-size: 1.8em;
+    font-family: var(--fonte-titulo);
+    font-weight: 700;
+    color: var(--cor-amarelo-texto);
+    background-color: white;
+    border: 3px solid var(--cor-amarelo-texto);
+    border-radius: 10px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.numero-arrastavel.arrastando { opacity: 0.5; }
+
+/* Dentro de styles/jogo-por-alf.css (ADICIONE ESTE ESTILO) */
+
+.feedback-message {
+    /* Garante que o feedback tenha um espaçamento superior consistente */
+    margin-top: 15px; /* Adiciona 15 pixels de espaço acima do feedback */
+    /* Garante que o texto de feedback seja centralizado */
+    text-align: center; 
+    font-size: 1.1em;
+}
+
+/* Opcional: Adicionar um pequeno espaço abaixo da área do botão */
+.game-actions {
+    margin-bottom: 10px;
+    text-align: center;
+}

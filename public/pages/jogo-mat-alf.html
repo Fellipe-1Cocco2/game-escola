@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matemática - Ordem Numérica</title>
+    <link rel="stylesheet" href="../styles/aluno.css">
+    <link rel="stylesheet" href="../styles/jogo-mat-alf.css"> </head>
+<body>
+
+    <header class="game-header-tarefas">
+        <div class="header-content">
+            <a href="/tarefas" class="btn-voltar">⬅ Voltar ao Hub</a>
+            <h1 class="game-title">Ordem Numérica! 1️⃣2️⃣</h1>
+            <span id="placar-ordem" class="placar">Pontos: 0</span>
+        </div>
+    </header>
+
+    <main class="game-main-content">
+        <p class="instrucoes">Arraste os números para os quadrados e coloque-os em **ordem crescente**.</p>
+
+        <div id="numeros-container-drop">
+            </div>
+        
+        <div id="numeros-origem">
+            </div>
+
+        <div class="game-actions">
+            <button id="verificar-btn" class="btn-primary">Verificar Ordem</button>
+        </div>
+        
+        <p id="feedback" class="feedback-message"></p>
+    </main>
+
+    <script src="../script/jogo-mat-alf.js"></script>
+</body>
+</html>

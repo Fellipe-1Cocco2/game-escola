@@ -1,0 +1,124 @@
+/* styles/jogo-por-alf.css */
+
+.game-main-content {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 30px;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+#palavra-alvo-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+#palavra-alvo-container p {
+    font-size: 1.5em;
+    color: var(--cor-texto-secundario);
+}
+#palavra-alvo {
+    font-family: var(--fonte-titulo);
+    font-size: 3em;
+    color: var(--cor-principal);
+    padding: 10px;
+    border-bottom: 3px solid var(--cor-principal-clara);
+    display: inline-block;
+}
+
+/* Zonas de Drop das Sílabas */
+#silabas-container-drop {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    min-height: 80px;
+    padding: 20px;
+    border: 2px dashed var(--cor-borda);
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+.drop-slot {
+    width: 120px;
+    height: 60px;
+    border: 2px dashed var(--cor-texto-secundario);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.drop-slot.hover {
+    background-color: var(--cor-azul-claro);
+    border-color: var(--cor-principal);
+}
+
+/* Sílabas Arrastáveis (Origem) */
+#silabas-origem {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    min-height: 80px;
+    padding: 20px;
+    background-color: #f4f4f4;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+.silaba-arrastavel {
+    width: 120px;
+    padding: 15px 10px;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: white;
+    background-color: var(--cor-principal-clara);
+    border-radius: 10px;
+    cursor: grab;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+.silaba-arrastavel.arrastando { opacity: 0.5; }
+
+/* Dentro de styles/jogo-por-alf.css (ADICIONE ESTE ESTILO) */
+
+.feedback-message {
+    /* Garante que o feedback tenha um espaçamento superior consistente */
+    margin-top: 15px; /* Adiciona 15 pixels de espaço acima do feedback */
+    /* Garante que o texto de feedback seja centralizado */
+    text-align: center; 
+    font-size: 1.1em;
+}
+
+/* Opcional: Adicionar um pequeno espaço abaixo da área do botão */
+.game-actions {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Dentro de styles/jogo-por-alf.css (ADICIONE OU AJUSTE ESTES ESTILOS) */
+
+/* ... (seus estilos existentes) ... */
+
+/* NOVO ESTILO PARA O CLIQUE-TO-MOVE */
+.silaba-arrastavel.selecionada {
+    /* Destaca a sílaba quando está pronta para ser movida */
+    border: 3px solid gold; /* Borda amarela/dourada chamativa */
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+    transform: scale(1.05);
+    cursor: pointer;
+}
+/* Altera o cursor para indicar que é clicável */
+.silaba-arrastavel {
+    /* ... (seus estilos existentes) ... */
+    cursor: pointer; /* MUDANÇA: De grab para pointer */
+}
+
+/* Garante o princípio de 'Linha de Visão' */
+.drop-slot {
+    /* ... (seus estilos existentes) ... */
+    width: 100px; /* Reduz um pouco o tamanho para telas menores */
+    height: 50px;
+}
+
+#silabas-origem {
+    /* ... (seus estilos existentes) ... */
+    min-height: 70px; /* Garante que o container não seja muito alto */
+}
